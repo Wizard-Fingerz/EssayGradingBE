@@ -26,6 +26,9 @@ class StudentRegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         matric_number = validated_data.pop('matric_number')
         username = matric_number.replace('/', '/')  # Remove slashes from matric number for the username
+        
+        # Explicitly set is_student to True
+        validated_data['is_student'] = True
 
         # Try to get an existing user with the same matric_number
         existing_user = User.objects.filter(matric_number=matric_number).first()

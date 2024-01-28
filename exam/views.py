@@ -12,12 +12,14 @@ class CourseListCreateView(generics.ListCreateAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     authentication_classes = [TokenAuthentication,]
+    # permission_classes = [permissions.AllowAny,]
     permission_classes = [permissions.IsAuthenticated]
 
 class CourseQuestionCreateView(generics.CreateAPIView):
     serializer_class = CourseQuestionSerializer
     authentication_classes = [TokenAuthentication,]
     permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.AllowAny,]
 
     def perform_create(self, serializer):
         serializer.save(examiner=self.request.user)
