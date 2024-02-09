@@ -46,21 +46,22 @@ class CourseQuestionAnswerView(generics.UpdateAPIView):
         # Save the updated instance
         serializer.save(student=self.request.user)
 
+
 class CourseQuestionDetailView(generics.RetrieveAPIView):
     queryset = CourseQuestion.objects.all()
     serializer_class = CourseQuestionSerializer
     permission_classes = [permissions.IsAuthenticated]
-    authentication_classes = [TokenAuthentication,]
+    authentication_classes = [TokenAuthentication]
 
     def retrieve(self, request, *args, **kwargs):
         # Retrieve the question_id from the URL parameters
         question_id = self.kwargs.get('question_id')
-        
+
         # Query the database to get the specific course question
-        course_question = CourseQuestion.objects.filter(question_id=question_id).first()
+        course_questions = CourseQuestion.objects.filter(question_id=question_id)
 
-        if course_question is None:
-            return Response({"detail": "Course question not found"}, status=status.HTTP_404_NOT_FOUND)
+        if not course_questions.exists():
+            return Response({"detail": "Course questions not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = self.get_serializer(course_question)
+        serializer = self.get_serializer(course_questions, many=True)
         return Response(serializer.data)

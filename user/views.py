@@ -23,18 +23,34 @@ class CustomObtainAuthToken(ObtainAuthToken):
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
 
-        # Determine the type of user (admin, student, lecturer, etc.)
+        # Determine the type of user (admin, student, examiner)
         user_type = None
+        course_id = None
+
         if user.is_admin:
             user_type = 'admin'
         elif user.is_student:
             user_type = 'student'
+            # Retrieve the associated course_id from StudentCourseRegistration
+            try:
+                student = Student.objects.get(user=user)
+                course_registration = StudentCourseRegistration.objects.get(student=student)
+                course_id = course_registration.course_id
+            except Student.DoesNotExist as e:
+                print(f"Student.DoesNotExist: {e}")
+                # Handle the case where there is no student record
+                course_id = None
+            except StudentCourseRegistration.DoesNotExist as e:
+                print(f"StudentCourseRegistration.DoesNotExist: {e}")
+                # Handle the case where there is no registration for the student
+                course_id = None
         elif user.is_examiner:
             user_type = 'examiner'
 
         return Response({
             'token': token.key,
             'user_type': user_type,
+            'course_id': course_id,
         })
 
 class StudentRegistrationView(generics.CreateAPIView):
@@ -45,8 +61,19 @@ class StudentRegistrationView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
+
+        # Retrieve the user instance created during registration
+        user = serializer.instance.user
+
+        # Assuming the course_id is provided in the request data
+        course_id = request.data.get('course_id')
+
+        # Create a StudentCourseRegistration entry
+        StudentCourseRegistration.objects.create(student=user.student, course_id=course_id)
+
         headers = self.get_success_headers(serializer.data)
-        return Response({'detail': 'Student user created successfully.'}, status=status.HTTP_201_CREATED, headers=headers)
+        return Response({'detail': 'Student user created and registered for the course successfully.'},
+                        status=status.HTTP_201_CREATED, headers=headers)
 
 class ExaminerRegistrationView(generics.CreateAPIView):
     serializer_class = ExaminerRegistrationSerializer

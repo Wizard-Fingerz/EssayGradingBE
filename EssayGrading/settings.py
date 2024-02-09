@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-g!(5*v55nkuk8l)y1$(fay^&z^4*c5mly@1k)%$dmzeah_c@2k
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['deepcoding.pythonanywhere.com',]
 
 
 # Application definition
@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+
     'rest_framework',
     'rest_framework.authtoken',
     'import_export',
@@ -60,8 +60,8 @@ REST_FRAMEWORK = {
 }
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -69,6 +69,13 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Your frontend domain in development
+    "http://localhost:3001",
+    # Add other domains as needed for production
+]
+
 
 ROOT_URLCONF = 'EssayGrading.urls'
 
@@ -94,14 +101,24 @@ WSGI_APPLICATION = 'EssayGrading.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),  # Use os.path.join()
+#         # 'NAME': Path(BASE_DIR) / 'db.sqlite3',  # Alternatively, use Path.joinpath()
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),  # Use os.path.join()
-        # 'NAME': Path(BASE_DIR) / 'db.sqlite3',  # Alternatively, use Path.joinpath()
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'deepcoding$newDb',  # Replace with your actual database name
+        'USER': 'deepcoding',
+        'PASSWORD': 'essaygrading',  # Replace with your actual database password
+        'HOST': 'deepcoding.mysql.pythonanywhere-services.com',
+        'PORT': '3306',  # Default MySQL port
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -138,12 +155,10 @@ AUTH_USER_MODEL = 'user.User'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles/')
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static/')
-]
+STATIC_URL = 'staticfiles/'
 
-STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles/")
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
