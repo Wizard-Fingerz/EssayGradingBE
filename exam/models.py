@@ -10,7 +10,11 @@ class Course(models.Model):
 
 
 class CourseQuestion(models.Model):
+<<<<<<< HEAD
     student = models.ForeignKey('Student', on_delete= models.CASCADE, related_name = 'student', null = True, blank = True)
+=======
+    student = models.ForeignKey(User, on_delete= models.CASCADE, related_name = 'student', null = True, blank = True)
+>>>>>>> 0cd4ff983fff3670030e6ecb499319cb6d992b47
     examiner = models.ForeignKey(User, on_delete= models.CASCADE, related_name = 'examiner', null = True, blank = True)
     question_id = models.ForeignKey(Course, on_delete = models.CASCADE)
     comprehension = models.TextField()
