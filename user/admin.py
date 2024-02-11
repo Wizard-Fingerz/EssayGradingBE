@@ -9,7 +9,3 @@ class UsersAdmin(ImportExportModelAdmin):
     list_display = ('username','email', 'first_name', 'last_name')
     search_fields = ['username', 'first_name', 'last_name']
     list_filter = ['is_student', 'is_examiner', 'is_admin']
-<<<<<<< HEAD
-
-=======
->>>>>>> 0cd4ff983fff3670030e6ecb499319cb6d992b47

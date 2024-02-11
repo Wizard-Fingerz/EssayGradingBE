@@ -138,9 +138,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    '*',
-]
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

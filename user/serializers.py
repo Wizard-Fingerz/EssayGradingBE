@@ -22,20 +22,12 @@ class UserSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-<<<<<<< HEAD
         matric_number = validated_data.pop('matric_number', None)
         examiner_id = validated_data.pop('examiner_id', None)
 
         if matric_number:
             username = matric_number.replace('/', '/')
             existing_user = User.objects.filter(matric_number=matric_number).first()
-=======
-        matric_number = validated_data.pop('matric_number')
-        username = matric_number.replace('/', '/')  # Remove slashes from matric number for the username
-        
-        # Explicitly set is_student to True
-        validated_data['is_student'] = True
->>>>>>> 0cd4ff983fff3670030e6ecb499319cb6d992b47
 
         elif examiner_id:
             username = examiner_id.replace('/', '/')
