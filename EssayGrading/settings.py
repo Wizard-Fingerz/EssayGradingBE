@@ -109,17 +109,38 @@ WSGI_APPLICATION = 'EssayGrading.wsgi.application'
 #     }
 # }
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'deepcoding$newDb',  # Replace with your actual database name
-        'USER': 'deepcoding',
-        'PASSWORD': 'essaygrading',  # Replace with your actual database password
-        'HOST': 'deepcoding.mysql.pythonanywhere-services.com',
-        'PORT': '3306',  # Default MySQL port
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'deepcoding$newDb',  # Replace with your actual database name
+#         'USER': 'deepcoding',
+#         'PASSWORD': 'essaygrading',  # Replace with your actual database password
+#         'HOST': 'deepcoding.mysql.pythonanywhere-services.com',
+#         'PORT': '3306',  # Default MySQL port
+#     }
+# }
 
+# Check if the application is running in production environment
+if 'DJANGO_PRODUCTION' in os.environ:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'deepcoding$newDb',       # Replace with your actual production database name
+            'USER': 'deepcoding',
+            'PASSWORD': 'essaygrading',      # Replace with your actual production database password
+            'HOST': 'deepcoding.mysql.pythonanywhere-services.com',
+            'PORT': '3306',                   # Default MySQL port
+        }
+    }
+else:
+    # Default to SQLite for local development
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
+    
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
