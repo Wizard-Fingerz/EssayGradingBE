@@ -16,7 +16,7 @@ class Course(models.Model):
 
 
 class CourseQuestion(models.Model):
-    exam = models.ForeignKey('Exam', on_delete=models.CASCADE, related_name='exam_questions')
+    exam = models.ForeignKey('Exam', on_delete=models.CASCADE, related_name='exam_questions', null = True, blank = True)
     student = models.ForeignKey(
         'Student', on_delete=models.CASCADE, related_name='student', null=True, blank=True)
     # question_id = models.ForeignKey(Course, on_delete = models.CASCADE)
@@ -56,7 +56,7 @@ class Exam(models.Model):
         'CourseQuestion', related_name='questions')
     duration = models.DurationField()
     instruction = models.CharField(max_length=250)
-    course = models.ForeignKey('Course', on_delete=models.CASCADE)
+    course = models.OneToOneField('Course', on_delete=models.CASCADE)
 
     def __str__(self):
         return str(self.course) or ''

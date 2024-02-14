@@ -60,12 +60,15 @@ class CreateExamSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         questions_data = validated_data.pop('questions')
-        exam = super(CreateExamSerializer, self).create(validated_data)
+        course_questions = questions_data  # Save the questions_data to use it later
+        exam = Exam.objects.create(**validated_data)
 
-        for question_data in questions_data:
+        # Now associate the questions with the exam
+        for question_data in course_questions:
             CourseQuestion.objects.create(exam=exam, **question_data)
 
         return exam
+
 
 class ExamDetailSerializer(serializers.ModelSerializer):
     questions = CourseQuestionSerializer(many=True, read_only=True)

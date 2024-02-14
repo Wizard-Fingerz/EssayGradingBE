@@ -6,8 +6,8 @@ from .models import *
 
 @admin.register(CourseQuestion)
 class CourseQuestionAdmin(ImportExportModelAdmin):
-    list_display = ('comprehension', 'question',
-                    'examiner_answer', 'student_answer')
+    list_display = ('exam','comprehension', 'question',
+                    'examiner_answer', 'student_answer', 'question_score')
     search_fields = ['comprehension', 'question', 'examiner_answer']
     # list_filter = ('question_id__title', 'question_id__code')  # Assuming title and code are fields in the related model
 
