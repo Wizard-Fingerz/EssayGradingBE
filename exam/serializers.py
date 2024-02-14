@@ -29,3 +29,70 @@ class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
         fields = '__all__'
+
+class CreateCourseQuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CourseQuestion
+        fields = ['comprehension', 'question', 'examiner_answer', 'question_score']
+
+# class CreateExamSerializer(serializers.ModelSerializer):
+#     questions = CreateCourseQuestionSerializer(many=True)
+
+#     class Meta:
+#         model = Exam
+#         fields = ['duration', 'instruction', 'course', 'questions']
+
+#     def create(self, validated_data):
+#         questions_data = validated_data.pop('questions')
+#         exam = Exam.objects.create(**validated_data)
+
+#         for question_data in questions_data:
+#             CourseQuestion.objects.create(exam=exam, **question_data)
+
+#         return exam
+
+class CreateExamSerializer(serializers.ModelSerializer):
+    questions = CreateCourseQuestionSerializer(many=True)
+
+    class Meta:
+        model = Exam
+        fields = ['duration', 'instruction', 'course', 'questions']
+
+    def create(self, validated_data):
+        questions_data = validated_data.pop('questions')
+        exam = super(CreateExamSerializer, self).create(validated_data)
+
+        for question_data in questions_data:
+            CourseQuestion.objects.create(exam=exam, **question_data)
+
+        return exam
+
+class ExamDetailSerializer(serializers.ModelSerializer):
+    questions = CourseQuestionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Exam
+        fields = ['id', 'duration', 'instruction', 'course', 'questions']
+
+class ExamWithQuestionsSerializer(serializers.ModelSerializer):
+    questions = CreateCourseQuestionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Exam
+        fields = ['id', 'duration', 'instruction', 'course', 'questions']
+
+# class CreateExamSerializer(serializers.ModelSerializer):
+#     questions = CreateCourseQuestionSerializer(many=True)
+
+#     class Meta:
+#         model = Exam
+#         fields = ['questions', 'duration', 'instruction', 'course']
+
+#     def create(self, validated_data):
+#         questions_data = validated_data.pop('questions', [])
+#         exam = Exam.objects.create(**validated_data)
+
+#         for question_data in questions_data:
+#             CourseQuestion.objects.create(exam=exam, **question_data)
+
+#         return exam

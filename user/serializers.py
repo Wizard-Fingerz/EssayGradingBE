@@ -87,13 +87,13 @@ class ExaminerRegistrationSerializer(serializers.Serializer):
 
 class StudentSerializer(serializers.Serializer):
     user = UserSerializer()
-    # Add any additional fields related to examiner registration
+    # Add any additional fields related to student registration
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         user = User.objects.create_student(**user_data)
 
-        # Add any additional logic related to examiner registration
+        # Add any additional logic related to student registration
 
         return user
         
@@ -102,3 +102,4 @@ class StudentsListSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username', 'first_name', 'last_name',]
+

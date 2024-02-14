@@ -17,7 +17,7 @@ class CourseListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         examiner = self.request.user
-        serializer.save(examiner = examiner)
+        serializer.save(examiner=examiner)
         return super().perform_create(serializer)
 
 
@@ -87,7 +87,7 @@ class CreateExamination(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         examiner = self.request.user
-        serializer.save(examiner = examiner)
+        serializer.save(examiner=examiner)
         return super().perform_create(serializer)
 
 
@@ -102,6 +102,7 @@ class CoursesByExaminerView(generics.ListAPIView):
         # Fetch courses based on the examiner's ID
         return Course.objects.filter(examiner_id=examiner_id)
 
+
 class StudentCourseRegistrationListView(generics.ListAPIView):
     serializer_class = StudentCourseRegistrationSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -110,8 +111,10 @@ class StudentCourseRegistrationListView(generics.ListAPIView):
         # Get the current examiner from the request user
         examiner = self.request.user
         # Filter the registrations for courses created by the examiner
-        queryset = StudentCourseRegistration.objects.filter(course__examiner=examiner)
+        queryset = StudentCourseRegistration.objects.filter(
+            course__examiner=examiner)
         return queryset
+
 
 class StudentCourseRegistrationCreateView(generics.CreateAPIView):
     serializer_class = StudentCourseRegistrationSerializer
@@ -121,3 +124,59 @@ class StudentCourseRegistrationCreateView(generics.CreateAPIView):
         # Associate the student with the registration based on the request user
         student = self.request.user.student
         serializer.save(student=student)
+
+
+class ExamCreateView(generics.CreateAPIView):
+    queryset = Exam.objects.all()
+    serializer_class = CreateExamSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def create(self, request, *args, **kwargs):
+        # Extract questions data from the request
+        print(request.data)
+        questions_data = request.data.get('questions', [])
+
+        print('question_data', questions_data)
+
+        # Create the exam instance
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=False)
+
+        # Manually check for validation errors
+        if serializer.errors:
+            print('Exam Serializer Errors:', serializer.errors)
+            return Response({'detail': 'Validation Error', 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Set the examiner based on the request user
+        serializer.validated_data['examiner'] = request.user
+
+        self.perform_create(serializer)
+
+        # Create questions for the exam
+        exam_instance = serializer.instance
+        self.create_questions(exam_instance, questions_data)
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    
+    def create_questions(self, exam_instance, questions_data):
+        for question_data in questions_data:
+            question_data['exam'] = exam_instance.id
+            question_serializer = CourseQuestionSerializer(data=question_data)
+            question_serializer.is_valid(raise_exception=True)
+            question_serializer.save()
+
+class ExamDetailView(generics.RetrieveAPIView):
+    queryset = Exam.objects.all()
+    serializer_class = ExamDetailSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+
+class ExamsWithQuestionsListView(generics.ListAPIView):
+    serializer_class = ExamWithQuestionsSerializer
+
+    def get_queryset(self):
+        # Retrieve exams with questions created by the current examiner
+        return Exam.objects.filter(examiner=self.request.user)

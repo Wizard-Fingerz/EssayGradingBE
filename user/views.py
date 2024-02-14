@@ -102,3 +102,4 @@ class StudentRegistrationView2(generics.CreateAPIView):
 class StudentListView(generics.ListAPIView):
     queryset = User.objects.filter(is_student=True)
     serializer_class = StudentsListSerializer
+
