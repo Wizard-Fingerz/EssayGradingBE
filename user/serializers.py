@@ -1,7 +1,6 @@
 from .models import *
 from exam.models import *
-from rest_framework import serializers
-from rest_framework import serializers
+from rest_framework import serializers, viewsets
 from .models import User
 from exam.models import StudentCourseRegistration
 
@@ -11,7 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['matric_number', 'examiner_id', 'password', 'is_student', 'is_examiner']
+        fields = '__all__'
 
     def validate_matric_number(self, value):
         # Your custom validation for matric number here, if needed
@@ -47,20 +46,31 @@ class StudentCourseRegistrationSerializer(serializers.ModelSerializer):
         model = StudentCourseRegistration
         fields = '__all__'
 
-class StudentRegistrationSerializer(serializers.Serializer):
-    user = UserSerializer()
-    course_id = serializers.IntegerField()
+# class StudentRegistrationSerializer(serializers.Serializer):
+#     user = UserSerializer()
+#     course_id = serializers.IntegerField()
 
-    def create(self, validated_data):
-        user_data = validated_data.pop('user')
-        user = User.objects.create_student(username=user_data.get('matric_number'), password=user_data.get('password'))
+#     def create(self, validated_data):
+#         user_data = validated_data.pop('user')
+#         user = User.objects.create_student(username=user_data.get('matric_number'), password=user_data.get('password'), is_student = True)
 
-        student = Student.objects.create(user=user)
+#         student = Student.objects.create(user=user)
 
-        course_id = validated_data.pop('course_id')
-        course_registration = StudentCourseRegistration.objects.create(student=student, course_id=course_id)
+#         course_id = validated_data.pop('course_id')
+#         course_registration = StudentCourseRegistration.objects.create(student=student, course_id=course_id)
 
-        return student
+#         return student
+
+class StudentRegistrationSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(max_length=30)
+    last_name = serializers.CharField(max_length=30)
+    matric_number = serializers.CharField(max_length=15)
+    password = serializers.CharField(max_length=128)
+    username = serializers.CharField(max_length=30)  # Include the 'username' field
+
+    class Meta:
+        model = User
+        fields = ['matric_number', 'password', 'first_name', 'last_name', 'is_student', 'username']
 
 
 class ExaminerRegistrationSerializer(serializers.Serializer):
@@ -74,3 +84,21 @@ class ExaminerRegistrationSerializer(serializers.Serializer):
         # Add any additional logic related to examiner registration
 
         return user
+
+class StudentSerializer(serializers.Serializer):
+    user = UserSerializer()
+    # Add any additional fields related to examiner registration
+
+    def create(self, validated_data):
+        user_data = validated_data.pop('user')
+        user = User.objects.create_student(**user_data)
+
+        # Add any additional logic related to examiner registration
+
+        return user
+        
+
+class StudentsListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name',]

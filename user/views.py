@@ -15,9 +15,11 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+
 class CustomObtainAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data, context={'request': request})
+        serializer = self.serializer_class(
+            data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
 
         user = serializer.validated_data['user']
@@ -30,7 +32,7 @@ class CustomObtainAuthToken(ObtainAuthToken):
             user_type = 'admin'
         elif user.is_student:
             user_type = 'student'
-            
+
         elif user.is_examiner:
             user_type = 'examiner'
 
@@ -40,27 +42,36 @@ class CustomObtainAuthToken(ObtainAuthToken):
 
         })
 
+
 class StudentRegistrationView(generics.CreateAPIView):
     serializer_class = StudentRegistrationSerializer
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        # Create a mutable copy of the request data
+        mutable_data = request.data.copy()
+
+        # Ensure is_student is set to True
+        mutable_data['is_student'] = True
+
+        # Set matric_number equal to the username if 'username' is present in mutable_data
+        if 'username' in mutable_data:
+            mutable_data['matric_number'] = mutable_data['username']
+
+        serializer = self.get_serializer(data=mutable_data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-
-        # Retrieve the user instance created during registration
-        user = serializer.instance.user
-
-        # Assuming the course_id is provided in the request data
-        course_id = request.data.get('course_id')
-
-        # Create a StudentCourseRegistration entry
-        StudentCourseRegistration.objects.create(student=user.student, course_id=course_id)
 
         headers = self.get_success_headers(serializer.data)
         return Response({'detail': 'Student user created and registered for the course successfully.'},
                         status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        # Set is_student to True and matric_number to username before saving
+        serializer.validated_data['is_student'] = True
+        serializer.validated_data['matric_number'] = serializer.validated_data['username']
+        serializer.save()
+
 
 class ExaminerRegistrationView(generics.CreateAPIView):
     serializer_class = ExaminerRegistrationSerializer
@@ -72,3 +83,22 @@ class ExaminerRegistrationView(generics.CreateAPIView):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response({'detail': 'Examiner user created successfully.'}, status=status.HTTP_201_CREATED, headers=headers)
+
+
+class StudentRegistrationView2(generics.CreateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        print(serializer)
+        serializer.is_valid(raise_exception=True)
+
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response({'detail': 'Student user created successfully.'}, status=status.HTTP_201_CREATED, headers=headers)
+
+
+class StudentListView(generics.ListAPIView):
+    queryset = User.objects.filter(is_student=True)
+    serializer_class = StudentsListSerializer
