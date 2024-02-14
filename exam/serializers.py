@@ -9,4 +9,11 @@ class CourseSerializer(serializers.ModelSerializer):
 class CourseQuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = CourseQuestion
-        fields = ['id', 'student', 'examiner', 'question_id', 'comprehension', 'question', 'examiner_answer', 'student_answer', 'student_score', 'question_score']
+        fields = ['id', 'student', 'comprehension', 'question', 'examiner_answer', 'student_answer', 'student_score', 'question_score']
+
+class ExamSerializer(serializers.ModelSerializer):
+    questions = CourseQuestionSerializer(many=True)
+
+    class Meta:
+        model = Exam
+        fields = '__all__'

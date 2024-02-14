@@ -7,7 +7,7 @@ from .models import *
 class CourseQuestionAdmin(ImportExportModelAdmin):
     list_display = ('comprehension', 'question', 'examiner_answer', 'student_answer')
     search_fields = ['comprehension', 'question', 'examiner_answer']
-    list_filter = ('question_id__title', 'question_id__code')  # Assuming title and code are fields in the related model
+    # list_filter = ('question_id__title', 'question_id__code')  # Assuming title and code are fields in the related model
 
 
 @admin.register(Course)
@@ -21,3 +21,7 @@ class StudentAdmin(ImportExportModelAdmin):
 @admin.register(StudentCourseRegistration)
 class StudentCourseRegistrationAdmin(ImportExportModelAdmin):
     list_display = ('student', 'course')
+
+@admin.register(Exam)
+class ExamAdmin(ImportExportModelAdmin):
+    list_display = ('course','questions', 'duration')

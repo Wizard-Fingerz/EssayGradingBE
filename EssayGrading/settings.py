@@ -125,7 +125,7 @@ if 'DJANGO_PRODUCTION' in os.environ:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'deepcoding$newDb',       # Replace with your actual production database name
+            'NAME': 'deepcoding$newDb3',       # Replace with your actual production database name
             'USER': 'deepcoding',
             'PASSWORD': 'essaygrading',      # Replace with your actual production database password
             'HOST': 'deepcoding.mysql.pythonanywhere-services.com',

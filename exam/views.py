@@ -67,3 +67,26 @@ class CourseQuestionDetailView(generics.RetrieveAPIView):
 
         serializer = self.get_serializer(course_questions, many=True)
         return Response(serializer.data)
+
+
+class CreateExamination(generics.CreateAPIView):
+    queryset = Exam.objects.all()
+    serializer_class = ExamSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    
+    def perform_create(self, serializer):
+        examiner = self.request.user
+        serializer.save(examiner)
+        return super().perform_create(serializer)
+
+class CoursesByExaminerView(generics.ListAPIView):
+    serializer_class = CourseSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # Retrieve the examiner's ID from the request user
+        examiner_id = self.request.user.id
+        # Fetch courses based on the examiner's ID
+        return Course.objects.filter(examiner_id=examiner_id)
