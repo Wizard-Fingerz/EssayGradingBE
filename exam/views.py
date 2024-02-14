@@ -102,12 +102,22 @@ class CoursesByExaminerView(generics.ListAPIView):
         # Fetch courses based on the examiner's ID
         return Course.objects.filter(examiner_id=examiner_id)
 
+class StudentCourseRegistrationListView(generics.ListAPIView):
+    serializer_class = StudentCourseRegistrationSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-class StudentViewSet(viewsets.ModelViewSet):
-    queryset = Student.objects.all()
-    serializer_class = StudentSerializer
+    def get_queryset(self):
+        # Get the current examiner from the request user
+        examiner = self.request.user
+        # Filter the registrations for courses created by the examiner
+        queryset = StudentCourseRegistration.objects.filter(course__examiner=examiner)
+        return queryset
+
+class StudentCourseRegistrationCreateView(generics.CreateAPIView):
+    serializer_class = StudentCourseRegistrationSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        # Associate the student with the examiner creating it
-        serializer.save(user=self.request.user)
+        # Associate the student with the registration based on the request user
+        student = self.request.user.student
+        serializer.save(student=student)

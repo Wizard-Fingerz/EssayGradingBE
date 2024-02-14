@@ -18,7 +18,14 @@ class ExamSerializer(serializers.ModelSerializer):
         model = Exam
         fields = '__all__'
 
+class StudentCourseRegistrationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentCourseRegistration
+        fields = '__all__'
+
+    
 class StudentSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = Student
         fields = '__all__'
