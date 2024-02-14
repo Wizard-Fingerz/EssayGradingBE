@@ -4,7 +4,7 @@ from .models import *
 class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
-        fields = ['id', 'title', 'code', 'description']
+        fields = ['id', 'examiner','title', 'code', 'description']
 
 class CourseQuestionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,4 +16,9 @@ class ExamSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Exam
+        fields = '__all__'
+
+class StudentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
         fields = '__all__'

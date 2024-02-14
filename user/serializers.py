@@ -1,7 +1,6 @@
 from .models import *
 from exam.models import *
-from rest_framework import serializers
-from rest_framework import serializers
+from rest_framework import serializers, viewsets
 from .models import User
 from exam.models import StudentCourseRegistration
 
@@ -47,18 +46,44 @@ class StudentCourseRegistrationSerializer(serializers.ModelSerializer):
         model = StudentCourseRegistration
         fields = '__all__'
 
+# class StudentRegistrationSerializer(serializers.Serializer):
+#     user = UserSerializer()
+#     course_id = serializers.IntegerField()
+
+#     def create(self, validated_data):
+#         user_data = validated_data.pop('user')
+#         user = User.objects.create_student(username=user_data.get('matric_number'), password=user_data.get('password'), is_student = True)
+
+#         student = Student.objects.create(user=user)
+
+#         course_id = validated_data.pop('course_id')
+#         course_registration = StudentCourseRegistration.objects.create(student=student, course_id=course_id)
+
+#         return student
+
 class StudentRegistrationSerializer(serializers.Serializer):
-    user = UserSerializer()
     course_id = serializers.IntegerField()
+    first_name = serializers.CharField(max_length=30)
+    last_name = serializers.CharField(max_length=30)
+    matric_no = serializers.CharField(max_length=15)
+    password = serializers.CharField(max_length=128)
 
     def create(self, validated_data):
-        user_data = validated_data.pop('user')
-        user = User.objects.create_student(username=user_data.get('matric_number'), password=user_data.get('password'))
+        user_data = {
+            'matric_number': validated_data['matric_no'],
+            'password': validated_data['password'],
+            'is_student': True,
+            'is_examiner': False,
+        }
+
+        user = User.objects.create_user(username=user_data.get('matric_number'),**user_data)
 
         student = Student.objects.create(user=user)
 
-        course_id = validated_data.pop('course_id')
-        course_registration = StudentCourseRegistration.objects.create(student=student, course_id=course_id)
+        course_id = validated_data['course_id']
+        course = Course.objects.get(pk=course_id)
+
+        StudentCourseRegistration.objects.create(student=student, course_id=course_id)
 
         return student
 

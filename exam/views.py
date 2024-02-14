@@ -2,7 +2,7 @@ from django.shortcuts import render
 from .prediction import *
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, viewsets
 from .models import Course, CourseQuestion
 from .serializers import *
 from rest_framework.authentication import TokenAuthentication
@@ -15,6 +15,12 @@ class CourseListCreateView(generics.ListCreateAPIView):
     # permission_classes = [permissions.AllowAny,]
     permission_classes = [permissions.IsAuthenticated]
 
+    def perform_create(self, serializer):
+        examiner = self.request.user
+        serializer.save(examiner = examiner)
+        return super().perform_create(serializer)
+
+
 class CourseQuestionCreateView(generics.CreateAPIView):
     serializer_class = CourseQuestionSerializer
     authentication_classes = [TokenAuthentication,]
@@ -23,6 +29,7 @@ class CourseQuestionCreateView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(examiner=self.request.user)
+
 
 class CourseQuestionAnswerView(generics.UpdateAPIView):
     queryset = CourseQuestion.objects.all()
@@ -38,9 +45,11 @@ class CourseQuestionAnswerView(generics.UpdateAPIView):
         examiner_answer = serializer.validated_data.get('examiner_answer')
 
         # Use the PredictionService to predict student score
-        model_path = './model/dt_model.joblib'  # Update with the actual path to your model file
+        # Update with the actual path to your model file
+        model_path = './model/dt_model.joblib'
         prediction_service = PredictionService(model_path)
-        student_score_prediction = prediction_service.predict(comprehension, question_score, student_answer, examiner_answer)
+        student_score_prediction = prediction_service.predict(
+            comprehension, question_score, student_answer, examiner_answer)
 
         # Update the 'student_score' field in the serializer
         serializer.validated_data['student_score'] = student_score_prediction
@@ -60,7 +69,8 @@ class CourseQuestionDetailView(generics.RetrieveAPIView):
         question_id = self.kwargs.get('question_id')
 
         # Query the database to get the specific course question
-        course_questions = CourseQuestion.objects.filter(question_id=question_id)
+        course_questions = CourseQuestion.objects.filter(
+            question_id=question_id)
 
         if not course_questions.exists():
             return Response({"detail": "Course questions not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -74,11 +84,12 @@ class CreateExamination(generics.CreateAPIView):
     serializer_class = ExamSerializer
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [TokenAuthentication]
-    
+
     def perform_create(self, serializer):
         examiner = self.request.user
-        serializer.save(examiner)
+        serializer.save(examiner = examiner)
         return super().perform_create(serializer)
+
 
 class CoursesByExaminerView(generics.ListAPIView):
     serializer_class = CourseSerializer
@@ -90,3 +101,13 @@ class CoursesByExaminerView(generics.ListAPIView):
         examiner_id = self.request.user.id
         # Fetch courses based on the examiner's ID
         return Course.objects.filter(examiner_id=examiner_id)
+
+
+class StudentViewSet(viewsets.ModelViewSet):
+    queryset = Student.objects.all()
+    serializer_class = StudentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        # Associate the student with the examiner creating it
+        serializer.save(user=self.request.user)

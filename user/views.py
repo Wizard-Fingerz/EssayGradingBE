@@ -46,6 +46,8 @@ class StudentRegistrationView(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
+        print(request.data)
+
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
 
