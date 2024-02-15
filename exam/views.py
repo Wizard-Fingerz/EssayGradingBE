@@ -67,27 +67,16 @@ class ExaminerQuestionsListView(generics.ListAPIView):
         # Retrieve the questions created by the authenticated examiner
         return CourseQuestion.objects.filter(exam__examiner=self.request.user)
 
-
 class CourseQuestionDetailView(generics.RetrieveAPIView):
     queryset = CourseQuestion.objects.all()
     serializer_class = CourseQuestionSerializer
     permission_classes = [permissions.IsAuthenticated]
-    authentication_classes = [TokenAuthentication]
+    lookup_url_kwarg = 'course_id'
 
-    def retrieve(self, request, *args, **kwargs):
-        # Retrieve the question_id from the URL parameters
-        question_id = self.kwargs.get('question_id')
-
-        # Query the database to get the specific course question
-        course_questions = CourseQuestion.objects.filter(
-            question_id=question_id)
-
-        if not course_questions.exists():
-            return Response({"detail": "Course questions not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = self.get_serializer(course_questions, many=True)
-        return Response(serializer.data)
-
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        course_id = self.kwargs.get(self.lookup_url_kwarg)
+        return queryset.filter(course__id=course_id)
 
 class CreateExamination(generics.CreateAPIView):
     queryset = Exam.objects.all()
