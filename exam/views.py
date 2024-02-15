@@ -57,6 +57,7 @@ class CourseQuestionAnswerView(generics.UpdateAPIView):
         # Save the updated instance
         serializer.save(student=self.request.user)
 
+
 class ExaminerQuestionsListView(generics.ListAPIView):
     serializer_class = CourseQuestionSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -112,7 +113,7 @@ class CoursesByExaminerView(generics.ListAPIView):
         return Course.objects.filter(examiner_id=examiner_id)
 
 
-class StudentCourseRegistrationListView(generics.ListAPIView):
+class ExaminerStudentCourseRegistrationListView(generics.ListAPIView):
     serializer_class = StudentCourseRegistrationSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -124,16 +125,55 @@ class StudentCourseRegistrationListView(generics.ListAPIView):
             course__examiner=examiner)
         return queryset
 
-
-class StudentCourseRegistrationCreateView(generics.CreateAPIView):
-    serializer_class = StudentCourseRegistrationSerializer
+class StudentCourseRegistrationView(generics.CreateAPIView):
+    serializer_class = StudentCourseRegistrationSerializer2
+    authentication_classes = [TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
-    def perform_create(self, serializer):
-        # Associate the student with the registration based on the request user
-        student = self.request.user.student
-        serializer.save(student=student)
+    def post(self, request, *args, **kwargs):
+        # Extract the courses data from the request
+        course_ids = request.data.get('courses', [])
 
+        # Assuming create method returns a single instance, not a list
+        registrations = []
+        for course_id in course_ids:
+            try:
+                course = Course.objects.get(pk=course_id)
+            except Course.DoesNotExist:
+                # Handle the case where the course does not exist
+                # Log a warning or skip this course registration
+                # For now, we'll skip it silently
+                continue
+
+            student, _ = Student.objects.get_or_create(user=request.user)
+            registration = StudentCourseRegistration.objects.create(student=student, course=course)
+            registrations.append(registration)
+
+        # Return a 201 response
+        return Response({"message": "Registrations created successfully"}, status=status.HTTP_201_CREATED)
+
+# class StudentCourseRegistrationCreateView(generics.CreateAPIView):
+#     serializer_class = StudentCourseRegistrationSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+
+#     def perform_create(self, serializer):
+#         # Associate the student with the registration based on the request user
+#         student = self.request.user
+#         serializer.save(student=student)
+
+class StudentCourseListView(generics.ListAPIView):
+    serializer_class = CourseSerializer
+
+    def get_queryset(self):
+        # Retrieve the current authenticated student
+        student = self.request.user.student
+
+        # Retrieve the courses registered by the student
+        registered_courses = StudentCourseRegistration.objects.filter(student=student).values_list('course_id', flat=True)
+
+        # Query the courses model to get the course details
+        queryset = Course.objects.filter(pk__in=registered_courses)
+        return queryset
 
 class ExamCreateView(generics.CreateAPIView):
     queryset = Exam.objects.all()
@@ -169,6 +209,7 @@ class ExamCreateView(generics.CreateAPIView):
     #         question_serializer = CreateCourseQuestionSerializer(data=question_data)
     #         question_serializer.is_valid(raise_exception=True)
     #         question_serializer.save()
+
 
 class ExamDetailView(generics.RetrieveAPIView):
     queryset = Exam.objects.all()

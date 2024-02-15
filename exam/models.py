@@ -45,6 +45,10 @@ class StudentCourseRegistration(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     registration_date = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        # Enforce unique constraint on student and course combination
+        unique_together = ['student', 'course']
+
     def __str__(self):
         return str(self.student.user.username) or ''
 

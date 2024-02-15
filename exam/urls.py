@@ -3,10 +3,10 @@ from .views import *
 
 
 urlpatterns = [
-    path('student-course-registrations/', StudentCourseRegistrationListView.as_view(),
+    path('examiner-student-course-registrations/', ExaminerStudentCourseRegistrationListView.as_view(),
          name='student-course-registrations'),
-    path('register-course/', StudentCourseRegistrationCreateView.as_view(),
-         name='register-course'),
+    #     path('register-course/', StudentCourseRegistrationCreateView.as_view(),
+    #          name='register-course'),
     path('courses/', CourseListCreateView.as_view(), name='course-list-create'),
     path('course-questions/', CourseQuestionCreateView.as_view(),
          name='course-question-create'),
@@ -24,6 +24,11 @@ urlpatterns = [
          name='exams-with-questions'),
     path('examiner-questions/', ExaminerQuestionsListView.as_view(),
          name='examiner-questions-list'),
+    path('student-course-registration/', StudentCourseRegistrationView.as_view(),
+         name='student-course-registration'),
+    path('student-courses/', StudentCourseListView.as_view(),
+         name='student-courses-list'),
+
 
 
 
