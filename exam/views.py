@@ -175,6 +175,20 @@ class StudentCourseListView(generics.ListAPIView):
         queryset = Course.objects.filter(pk__in=registered_courses)
         return queryset
 
+class StudentExamListView(generics.ListAPIView):
+    serializer_class = ExamSerializer
+
+    def get_queryset(self):
+        # Retrieve the current authenticated student
+        student = self.request.user.student
+
+        # Retrieve the courses registered by the student
+        registered_courses = student.studentcourseregistration_set.values_list('course_id', flat=True)
+
+        # Query the exams associated with the registered courses
+        queryset = Exam.objects.filter(course_id__in=registered_courses)
+        return queryset
+
 class ExamCreateView(generics.CreateAPIView):
     queryset = Exam.objects.all()
     serializer_class = CreateExamSerializer

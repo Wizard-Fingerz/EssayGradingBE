@@ -28,6 +28,13 @@ class ExamSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class GetExamSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Exam
+        fields = '__all__'
+
+
 class StudentCourseRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentCourseRegistration
@@ -106,7 +113,7 @@ class CreateExamSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Exam
-        fields = ['duration', 'instruction', 'course', 'questions']
+        fields = ['duration', 'instruction', 'course', 'questions', 'total_mark']
 
     def create(self, validated_data):
         questions_data = validated_data.pop('questions')

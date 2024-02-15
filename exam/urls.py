@@ -28,6 +28,8 @@ urlpatterns = [
          name='student-course-registration'),
     path('student-courses/', StudentCourseListView.as_view(),
          name='student-courses-list'),
+    path('student-exams/', StudentExamListView.as_view(),
+         name='student-exams-list'),
 
 
 
