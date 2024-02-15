@@ -57,6 +57,15 @@ class CourseQuestionAnswerView(generics.UpdateAPIView):
         # Save the updated instance
         serializer.save(student=self.request.user)
 
+class ExaminerQuestionsListView(generics.ListAPIView):
+    serializer_class = CourseQuestionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get_queryset(self):
+        # Retrieve the questions created by the authenticated examiner
+        return CourseQuestion.objects.filter(exam__examiner=self.request.user)
+
 
 class CourseQuestionDetailView(generics.RetrieveAPIView):
     queryset = CourseQuestion.objects.all()

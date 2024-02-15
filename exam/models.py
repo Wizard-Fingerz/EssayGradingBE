@@ -57,6 +57,7 @@ class Exam(models.Model):
     duration = models.DurationField()
     instruction = models.CharField(max_length=250)
     course = models.OneToOneField('Course', on_delete=models.CASCADE)
+    total_mark = models.IntegerField()
 
     def __str__(self):
         return str(self.course) or ''

@@ -7,9 +7,12 @@ class CourseSerializer(serializers.ModelSerializer):
         fields = ['id', 'examiner','title', 'code', 'description']
 
 class CourseQuestionSerializer(serializers.ModelSerializer):
+    course_name = serializers.CharField(source='exam.course.title', read_only=True)
+    course_code = serializers.CharField(source='exam.course.code', read_only=True)
+
     class Meta:
         model = CourseQuestion
-        fields = ['id', 'student', 'comprehension', 'question', 'examiner_answer', 'student_answer', 'student_score', 'question_score']
+        fields = ['id', 'course_name','course_code', 'student', 'comprehension', 'question', 'examiner_answer', 'student_answer', 'student_score', 'question_score']
 
 class ExamSerializer(serializers.ModelSerializer):
     questions = CourseQuestionSerializer(many=True)

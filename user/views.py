@@ -8,6 +8,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
+from django.contrib.auth.hashers import make_password
 # Create your views here.
 
 
@@ -70,6 +71,12 @@ class StudentRegistrationView(generics.CreateAPIView):
         # Set is_student to True and matric_number to username before saving
         serializer.validated_data['is_student'] = True
         serializer.validated_data['matric_number'] = serializer.validated_data['username']
+
+        # Encrypt the password using make_password
+        raw_password = serializer.validated_data['password']
+        encrypted_password = make_password(raw_password)
+        serializer.validated_data['password'] = encrypted_password
+
         serializer.save()
 
 
@@ -102,4 +109,3 @@ class StudentRegistrationView2(generics.CreateAPIView):
 class StudentListView(generics.ListAPIView):
     queryset = User.objects.filter(is_student=True)
     serializer_class = StudentsListSerializer
-

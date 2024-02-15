@@ -22,6 +22,9 @@ urlpatterns = [
     path('exam-detail/<int:pk>/', ExamDetailView.as_view(), name='exam-detail'),
     path('exams-with-questions/', ExamsWithQuestionsListView.as_view(),
          name='exams-with-questions'),
+    path('examiner-questions/', ExaminerQuestionsListView.as_view(),
+         name='examiner-questions-list'),
+
 
 
 
