@@ -23,16 +23,20 @@ class CourseQuestionSerializer(serializers.ModelSerializer):
 class ExamSerializer(serializers.ModelSerializer):
     questions = CourseQuestionSerializer(many=True)
 
+
     class Meta:
         model = Exam
         fields = '__all__'
 
 
 class GetExamSerializer(serializers.ModelSerializer):
+    questions = CourseQuestionSerializer(many=True)
+    examiner = serializers.CharField(source='examiner.username', read_only=True)
+    course_name = serializers.CharField(source='course.title', read_only=True)
 
     class Meta:
         model = Exam
-        fields = '__all__'
+        fields = ['questions', 'examiner', 'duration', 'instruction', 'course_name', 'total_mark', 'course']
 
 
 class StudentCourseRegistrationSerializer(serializers.ModelSerializer):

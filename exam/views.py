@@ -176,7 +176,7 @@ class StudentCourseListView(generics.ListAPIView):
         return queryset
 
 class StudentExamListView(generics.ListAPIView):
-    serializer_class = ExamSerializer
+    serializer_class = GetExamSerializer
 
     def get_queryset(self):
         # Retrieve the current authenticated student
