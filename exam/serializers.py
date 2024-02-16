@@ -161,3 +161,8 @@ class ExamWithQuestionsSerializer(serializers.ModelSerializer):
 #             CourseQuestion.objects.create(exam=exam, **question_data)
 
 #         return exam
+
+class ExamResultSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExamResult
+        fields = ['id', 'student', 'question', 'student_answer', 'student_score']

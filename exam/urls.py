@@ -30,9 +30,9 @@ urlpatterns = [
          name='student-courses-list'),
     path('student-exams/', StudentExamListView.as_view(),
          name='student-exams-list'),
-
-
-
-
-
+    path('get-course-questions/', CourseQuestionListView.as_view(),
+         name='get-course-question-list'),
+    path('exam-results/<int:pk>/', ExamResultUpdateView.as_view(),
+         name='exam-result-update'),
+    path('submit-answer/<int:pk>/', AnswerSubmissionView.as_view(), name='submit-answer'),
 ]

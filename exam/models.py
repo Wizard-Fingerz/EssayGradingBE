@@ -65,3 +65,12 @@ class Exam(models.Model):
 
     def __str__(self):
         return str(self.course) or ''
+
+class ExamResult(models.Model):
+    student = models.ForeignKey(User, on_delete=models.CASCADE)
+    question = models.ForeignKey(CourseQuestion, on_delete=models.CASCADE)
+    student_answer = models.TextField()
+    student_score = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.student.username}'s answer to {self.question}"

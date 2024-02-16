@@ -78,6 +78,19 @@ class CourseQuestionDetailView(generics.RetrieveAPIView):
         course_id = self.kwargs.get(self.lookup_url_kwarg)
         return queryset.filter(course__id=course_id)
 
+class CourseQuestionListView(generics.ListAPIView):
+    serializer_class = CourseQuestionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get_queryset(self):
+        # Get the course ID from the URL query parameters or request body
+        course_id = self.request.query_params.get('course_id')
+        
+        # Filter course questions based on the provided course ID
+        queryset = CourseQuestion.objects.filter(course_id=course_id)
+        return queryset
+
 class CreateExamination(generics.CreateAPIView):
     queryset = Exam.objects.all()
     serializer_class = ExamSerializer
@@ -210,3 +223,47 @@ class ExamsWithQuestionsListView(generics.ListAPIView):
     def get_queryset(self):
         # Retrieve exams with questions created by the current examiner
         return Exam.objects.filter(examiner=self.request.user)
+
+
+class ExamResultUpdateView(generics.UpdateAPIView):
+    queryset = ExamResult.objects.all()
+    serializer_class = ExamResultSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication,]
+
+    def perform_update(self, serializer):
+        instance = serializer.instance
+        student_answer = serializer.validated_data.get('student_answer')
+
+        # Use the PredictionService to predict the student's score
+        model_path = './model/dt_model.joblib'  # Update with the actual path to your model file
+        prediction_service = PredictionService(model_path)
+        predicted_score = prediction_service.predict_score(student_answer)
+
+        # Update the 'student_score' field in the serializer
+        serializer.validated_data['student_score'] = predicted_score
+
+        # Save the updated instance
+        serializer.save()
+
+class AnswerSubmissionView(generics.UpdateAPIView):
+    queryset = CourseQuestion.objects.all()
+    serializer_class = CourseQuestionSerializer
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        # Extract student's answer from the request data
+        student_answer = serializer.validated_data.get('student_answer')
+
+        # Use your prediction service to grade the answer
+        prediction_service = PredictionService()  # Initialize your prediction service
+        student_score = prediction_service.predict(student_answer)
+
+        # Update the model instance with the graded score
+        instance.student_score = student_score
+        instance.save()
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
