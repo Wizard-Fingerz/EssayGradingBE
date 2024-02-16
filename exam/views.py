@@ -232,25 +232,32 @@ class ExamResultUpdateView(generics.UpdateAPIView):
     authentication_classes = [TokenAuthentication,]
 
     def perform_update(self, serializer):
-        instance = serializer.instance
+        # Assuming 'comprehension', 'question_score', 'student_answer', 'examiner_answer' are fields in your model
+        comprehension = serializer.validated_data.get('comprehension')
+        question_score = serializer.validated_data.get('question_score')
         student_answer = serializer.validated_data.get('student_answer')
+        examiner_answer = serializer.validated_data.get('examiner_answer')
 
-        # Use the PredictionService to predict the student's score
-        model_path = './model/dt_model.joblib'  # Update with the actual path to your model file
+        # Use the PredictionService to predict student score
+        # Update with the actual path to your model file
+        model_path = './model/dt_model.joblib'
         prediction_service = PredictionService(model_path)
-        predicted_score = prediction_service.predict_score(student_answer)
+        student_score_prediction = prediction_service.predict(
+            comprehension, question_score, student_answer, examiner_answer)
 
         # Update the 'student_score' field in the serializer
-        serializer.validated_data['student_score'] = predicted_score
+        serializer.validated_data['student_score'] = student_score_prediction
 
         # Save the updated instance
-        serializer.save()
+        serializer.save(student=self.request.user)
+
 
 class AnswerSubmissionView(generics.UpdateAPIView):
-    queryset = CourseQuestion.objects.all()
+    queryset = CourseQuestion.objects.all()  # Specify the queryset
     serializer_class = CourseQuestionSerializer
 
     def update(self, request, *args, **kwargs):
+        print(request.data)
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
