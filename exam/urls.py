@@ -14,7 +14,7 @@ urlpatterns = [
          name='course-question-create'),
     path('course-questions/<int:pk>/answer/',
          CourseQuestionAnswerView.as_view(), name='course-question-answer'),
-    path('course-questions/<int:question_id>/',
+    path('course-questions/<int:course_id>/',
          CourseQuestionDetailView.as_view(), name='course-question-detail'),
     path('courses-by-examiner/', CoursesByExaminerView.as_view(),
          name='courses-by-examiner'),

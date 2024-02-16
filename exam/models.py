@@ -19,7 +19,7 @@ class CourseQuestion(models.Model):
     exam = models.ForeignKey('Exam', on_delete=models.CASCADE, related_name='exam_questions', null = True, blank = True)
     student = models.ForeignKey(
         'Student', on_delete=models.CASCADE, related_name='student', null=True, blank=True)
-    course = models.ForeignKey(Course, on_delete = models.CASCADE)
+    course = models.ForeignKey(Course, on_delete = models.CASCADE, null = True, blank = True)
     comprehension = models.TextField()
     question = models.CharField(max_length=250)
     examiner_answer = models.TextField()

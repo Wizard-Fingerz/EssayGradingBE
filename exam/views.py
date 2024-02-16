@@ -6,7 +6,7 @@ from rest_framework import generics, permissions, viewsets
 from .models import Course, CourseQuestion
 from .serializers import *
 from rest_framework.authentication import TokenAuthentication
-
+from django.core.exceptions import ObjectDoesNotExist
 
 class CourseListCreateView(generics.ListCreateAPIView):
     queryset = Course.objects.all()
@@ -150,33 +150,28 @@ class StudentCourseRegistrationView(generics.CreateAPIView):
 #         student = self.request.user
 #         serializer.save(student=student)
 
+
 class StudentCourseListView(generics.ListAPIView):
     serializer_class = CourseSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Retrieve the current authenticated student
-        student = self.request.user.student
-
         # Retrieve the courses registered by the student
-        registered_courses = StudentCourseRegistration.objects.filter(student=student).values_list('course_id', flat=True)
+        registered_courses = StudentCourseRegistration.objects.filter(student=self.request.user.student)
+        return [registration.course for registration in registered_courses]
 
-        # Query the courses model to get the course details
-        queryset = Course.objects.filter(pk__in=registered_courses)
-        return queryset
 
 class StudentExamListView(generics.ListAPIView):
     serializer_class = GetExamSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Retrieve the current authenticated student
-        student = self.request.user.student
-
         # Retrieve the courses registered by the student
-        registered_courses = student.studentcourseregistration_set.values_list('course_id', flat=True)
-
-        # Query the exams associated with the registered courses
-        queryset = Exam.objects.filter(course_id__in=registered_courses)
-        return queryset
+        registered_courses = StudentCourseRegistration.objects.filter(student=self.request.user.student)
+        
+        # Get exams for the registered courses
+        exams = Exam.objects.filter(course__in=registered_courses.values_list('course', flat=True))
+        return exams
 
 class ExamCreateView(generics.CreateAPIView):
     queryset = Exam.objects.all()
@@ -199,20 +194,8 @@ class ExamCreateView(generics.CreateAPIView):
 
         exam_instance = serializer.instance
 
-        # Check if questions_data is not empty before creating questions
-        # if questions_data:
-        #     self.create_questions(exam_instance, questions_data)
-
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-    # def create_questions(self, exam_instance, questions_data):
-    #     for question_data in questions_data:
-    #         question_data['exam'] = exam_instance
-    #         question_serializer = CreateCourseQuestionSerializer(data=question_data)
-    #         question_serializer.is_valid(raise_exception=True)
-    #         question_serializer.save()
-
 
 class ExamDetailView(generics.RetrieveAPIView):
     queryset = Exam.objects.all()
