@@ -9,9 +9,9 @@ class PredictionService:
         except Exception as e:
             raise ValueError(f"Error loading the model from {model_path}: {e}")
 
-    def predict(self, question_id, comprehension, question_score, answer, examiner_answer):
+    def predict(self, question_id, comprehension, question_score, examiner_answer, student_answer, student_score ):
         # Preprocess the input features if necessary
-        input_data = [(question_id, comprehension, question_score, answer, examiner_answer)]
+        input_data = (question_id, comprehension, question_score, student_answer, examiner_answer, student_score)
         input_data = np.array(input_data)  # Ensure input_data is a numpy array
         try:
             # Predict using the model

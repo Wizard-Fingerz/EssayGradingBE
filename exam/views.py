@@ -279,15 +279,26 @@ class AnswerSubmissionView(views.APIView):
         # Assuming the request data contains question IDs mapped to answers
         answers_data = request.data
 
+        model_path = './model/dt_model.joblib'
+
+        model = joblib.load(model_path)
+        print(model)
+
         try:
             model_path = './model/dt_model.joblib'
+
+            model = joblib.load(model_path)
+            print(model)
+
             prediction_service = PredictionService(
                 model_path)  # Initialize PredictionService
             
-            print(question_id)
+            print('hello world')
 
             for question_id, answer in answers_data.items():
                 question = get_object_or_404(CourseQuestion, id=question_id)
+
+                print(question.question)
 
                 # Use PredictionService to predict student score
                 student_score = prediction_service.predict(
