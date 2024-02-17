@@ -48,7 +48,7 @@ class CourseQuestionAnswerView(generics.UpdateAPIView):
 
         # Use the PredictionService to predict student score
         # Update with the actual path to your model file
-        model_path = './model/dt_model.joblib'
+        model_path = './model/rf_model.joblib'
         prediction_service = PredictionService(model_path)
         student_score_prediction = prediction_service.predict(
             comprehension, question_score, student_answer, examiner_answer)
