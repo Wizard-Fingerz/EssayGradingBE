@@ -1,22 +1,56 @@
-import joblib  # or any other library you used to dump the model
+import joblib
 import numpy as np
-import pickle
+from sklearn.exceptions import InconsistentVersionWarning
+import warnings
+
+warnings.simplefilter("ignore", category=InconsistentVersionWarning)
 
 class PredictionService:
-    def __init__(self, model_path):
-        try:
-            self.model = joblib.load(model_path)
-        except Exception as e:
-            raise ValueError(f"Error loading the model from {model_path}: {e}")
+    def __init__(self):
+        self.model = self.load_model()
+        self.tfidf_vectorizer = joblib.load('./model/tfidf_vectorizer.joblib')  # Load the TF-IDF vectorizer
 
-    def predict(self, question_id, comprehension, question_score, examiner_answer, student_answer, student_score ):
-        # Preprocess the input features if necessary
-        input_data = ([[question_id, comprehension, question_score, student_answer, examiner_answer, student_score]])
-        input_data = np.array(input_data)  # Ensure input_data is a numpy array
+    def load_model(self):
+        model_path = './model/rf_model.joblib'
+        try:
+            model = joblib.load(model_path)
+            return model
+        except Exception as e:
+            print(f"Error loading the model: {e}")
+            return None
+
+    def preprocess_text(self, text):
+        # Convert text to lowercase
+        text = text.lower()
+        # Remove non-alphanumeric characters and keep spaces
+        text = ''.join([char for char in text if char.isalnum() or char.isspace()])
+        # Tokenize the text into words
+        tokens = word_tokenize(text)
+        # Remove stopwords
+        stop_words = set(stopwords.words('english'))
+        tokens = [word for word in tokens if word not in stop_words]
+        # Lemmatize the words
+        lemmatizer = WordNetLemmatizer()
+        tokens = [lemmatizer.lemmatize(word) for word in tokens]
+        # Join the preprocessed tokens back into a single string
+        return ' '.join(tokens)
+
+    def predict(self, question_id, comprehension, question, question_score, examiner_answer):
+        if self.model is None:
+            print("Model attribute is not initialized. Skipping prediction.")
+            return None
+
+        # Preprocess the input features
+        input_text = f"{comprehension} {question} {examiner_answer}"
+        preprocessed_text = self.preprocess_text(input_text)
+
+        # Vectorize the preprocessed text using the loaded TF-IDF vectorizer
+        input_data = self.tfidf_vectorizer.transform([preprocessed_text])
+
         try:
             # Predict using the model
             prediction = self.model.predict(input_data)
             return prediction[0]  # Assuming a single prediction is made
         except Exception as e:
-            raise ValueError(f"Error making prediction: {e}")
-
+            print(f"Error making prediction: {e}")
+            return None
