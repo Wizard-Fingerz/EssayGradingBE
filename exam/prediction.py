@@ -7,9 +7,9 @@ class PredictionService:
         except Exception as e:
             raise ValueError(f"Error loading the model from {model_path}: {e}")
 
-    def predict(self, comprehension, question_score, answer, examiner_answer):
+    def predict(self, question_id, comprehension, question_score, answer, examiner_answer):
         # Preprocess the input features if necessary
-        input_data = [(comprehension, question_score, answer, examiner_answer)]
+        input_data = [(question_id, comprehension, question_score, answer, examiner_answer)]
         
         try:
             # Predict using the model
