@@ -16,15 +16,11 @@ class Course(models.Model):
 
 
 class CourseQuestion(models.Model):
-    exam = models.ForeignKey('Exam', on_delete=models.CASCADE, related_name='exam_questions', null = True, blank = True)
-    student = models.ForeignKey(
-        'Student', on_delete=models.CASCADE, related_name='student', null=True, blank=True)
+    # exam = models.ForeignKey('Exam', on_delete=models.CASCADE, related_name='exam_questions', null = True, blank = True)
     course = models.ForeignKey(Course, on_delete = models.CASCADE, null = True, blank = True)
     comprehension = models.TextField()
     question = models.CharField(max_length=250)
     examiner_answer = models.TextField()
-    student_answer = models.TextField(null=True, blank=True)
-    student_score = models.IntegerField(null=True, blank=True)
     question_score = models.IntegerField()
 
     def __str__(self):
@@ -60,17 +56,18 @@ class Exam(models.Model):
         'CourseQuestion', related_name='questions')
     duration = models.DurationField()
     instruction = models.CharField(max_length=250)
-    course = models.OneToOneField('Course', on_delete=models.CASCADE)
+    course = models.OneToOneField('Course', on_delete=models.CASCADE, null = True, blank = True)
     total_mark = models.IntegerField()
 
     def __str__(self):
         return str(self.course) or ''
 
 class ExamResult(models.Model):
-    student = models.ForeignKey(User, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
     question = models.ForeignKey(CourseQuestion, on_delete=models.CASCADE)
-    student_answer = models.TextField()
-    student_score = models.IntegerField()
+    student_answer = models.TextField(null=True, blank=True)
+    student_score = models.IntegerField(null=True, blank=True)
+    
 
     def __str__(self):
-        return f"{self.student.username}'s answer to {self.question}"
+        return f"{self.student.user}'s answer to {self.question}"

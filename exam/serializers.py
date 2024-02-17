@@ -10,19 +10,18 @@ class CourseSerializer(serializers.ModelSerializer):
 
 class CourseQuestionSerializer(serializers.ModelSerializer):
     course_name = serializers.CharField(
-        source='exam.course.title', read_only=True)
+        source='course.title', read_only=True)
     course_code = serializers.CharField(
-        source='exam.course.code', read_only=True)
+        source='course.code', read_only=True)
 
     class Meta:
         model = CourseQuestion
-        fields = ['id', 'course_name', 'course_code', 'student', 'comprehension',
-                  'question', 'examiner_answer', 'student_answer', 'student_score', 'question_score']
+        fields = ['id', 'course_name', 'course_code',  'comprehension',
+                  'question', 'examiner_answer', 'question_score', 'course']
 
 
 class ExamSerializer(serializers.ModelSerializer):
     questions = CourseQuestionSerializer(many=True)
-
 
     class Meta:
         model = Exam
@@ -95,22 +94,6 @@ class CreateCourseQuestionSerializer(serializers.ModelSerializer):
         fields = ['comprehension', 'question',
                   'examiner_answer', 'question_score']
 
-# class CreateExamSerializer(serializers.ModelSerializer):
-#     questions = CreateCourseQuestionSerializer(many=True)
-
-#     class Meta:
-#         model = Exam
-#         fields = ['duration', 'instruction', 'course', 'questions']
-
-#     def create(self, validated_data):
-#         questions_data = validated_data.pop('questions')
-#         exam = Exam.objects.create(**validated_data)
-
-#         for question_data in questions_data:
-#             CourseQuestion.objects.create(exam=exam, **question_data)
-
-#         return exam
-
 
 class CreateExamSerializer(serializers.ModelSerializer):
     questions = CreateCourseQuestionSerializer(many=True)
@@ -120,13 +103,18 @@ class CreateExamSerializer(serializers.ModelSerializer):
         fields = ['duration', 'instruction', 'course', 'questions', 'total_mark']
 
     def create(self, validated_data):
+        course = validated_data.pop('course')
         questions_data = validated_data.pop('questions')
-        course_questions = questions_data  # Save the questions_data to use it later
-        exam = Exam.objects.create(**validated_data)
+
+        # Save the questions_data to use it later
+        course_questions = questions_data  
+
+        exam = Exam.objects.create(course=course, **validated_data)
 
         # Now associate the questions with the exam
         for question_data in course_questions:
-            CourseQuestion.objects.create(exam=exam, **question_data)
+            question = CourseQuestion.objects.create(course=course, **question_data)
+            exam.questions.add(question)  # Add the question to the many-to-many relationship
 
         return exam
 
@@ -146,21 +134,6 @@ class ExamWithQuestionsSerializer(serializers.ModelSerializer):
         model = Exam
         fields = ['id', 'duration', 'instruction', 'course', 'questions']
 
-# class CreateExamSerializer(serializers.ModelSerializer):
-#     questions = CreateCourseQuestionSerializer(many=True)
-
-#     class Meta:
-#         model = Exam
-#         fields = ['questions', 'duration', 'instruction', 'course']
-
-#     def create(self, validated_data):
-#         questions_data = validated_data.pop('questions', [])
-#         exam = Exam.objects.create(**validated_data)
-
-#         for question_data in questions_data:
-#             CourseQuestion.objects.create(exam=exam, **question_data)
-
-#         return exam
 
 class ExamResultSerializer(serializers.ModelSerializer):
     class Meta:
