@@ -266,33 +266,39 @@ class ExamResultUpdateView(generics.UpdateAPIView):
         # Save the updated instance
         serializer.save(student=self.request.user)
 
+
 class AnswerSubmissionView(views.APIView):
     def post(self, request, *args, **kwargs):
         print(request.data)
         user = request.user  # Assuming the user is authenticated
-        
+
         # Check if the user is authenticated
         if not user.is_authenticated:
             return Response("User is not authenticated.", status=status.HTTP_401_UNAUTHORIZED)
 
-        answers_data = request.data  # Assuming the request data contains question IDs mapped to answers
+        # Assuming the request data contains question IDs mapped to answers
+        answers_data = request.data
 
         try:
             model_path = './model/dt_model.joblib'
-            prediction_service = PredictionService(model_path)  # Initialize PredictionService
+            prediction_service = PredictionService(
+                model_path)  # Initialize PredictionService
             
+            print(question_id)
+
             for question_id, answer in answers_data.items():
                 question = get_object_or_404(CourseQuestion, id=question_id)
-                
+
                 # Use PredictionService to predict student score
                 student_score = prediction_service.predict(
+                    question_id=question_id,  # Use the ID of the question
                     comprehension=question.comprehension,
                     question=question.question,
                     question_score=question.question_score,
                     answer=answer,
                     examiner_answer=question.examiner_answer
                 )
-                
+
                 # Create or update ExamResult instance
                 exam_result, created = ExamResult.objects.get_or_create(
                     student=user.student,  # Use user's related Student instance
@@ -313,4 +319,3 @@ class AnswerSubmissionView(views.APIView):
             # Log the exception for debugging
             print(f"An error occurred while saving exam result: {e}")
             return Response(f"An error occurred while saving exam result: {e}", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-

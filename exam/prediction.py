@@ -1,4 +1,6 @@
 import joblib  # or any other library you used to dump the model
+import numpy as np
+
 
 class PredictionService:
     def __init__(self, model_path):
@@ -10,7 +12,7 @@ class PredictionService:
     def predict(self, question_id, comprehension, question_score, answer, examiner_answer):
         # Preprocess the input features if necessary
         input_data = [(question_id, comprehension, question_score, answer, examiner_answer)]
-        
+        input_data = np.array(input_data)  # Ensure input_data is a numpy array
         try:
             # Predict using the model
             prediction = self.model.predict(input_data)
