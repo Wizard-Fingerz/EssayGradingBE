@@ -286,11 +286,12 @@ class AnswerSubmissionView(views.APIView):
                 question = get_object_or_404(CourseQuestion, id=question_id)
                 # Use PredictionService to predict student score
                 student_score = prediction_service.predict(
-                    question_id=question_id,  # Use the ID of the question
+                    question_id=question.course,  # Use the ID of the question
                     comprehension=question.comprehension,
                     question=question.question,
                     question_score=question.question_score,
-                    examiner_answer=question.examiner_answer
+                    examiner_answer=question.examiner_answer,
+                    student_answer=answer  # Pass student_answer from request data
                 )
 
                 # Create or update ExamResult instance
