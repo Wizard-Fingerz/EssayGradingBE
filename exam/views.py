@@ -279,14 +279,18 @@ class AnswerSubmissionView(views.APIView):
         # Assuming the request data contains question IDs mapped to answers
         answers_data = request.data
 
-        model_path = './model/dt_model.joblib'
+        # model_path = './model/dt_model.joblib'
+        # model_path = './model/dt_model.new'
+        model_path = './model/rf_model.joblib'
 
         model = joblib.load(model_path)
         print(model)
 
         try:
-            model_path = './model/dt_model.joblib'
+            # model_path = './model/dt_model.joblib'
 
+            # model_path = './model/dt_model.new'
+            model_path = './model/rf_model.joblib'
             model = joblib.load(model_path)
             print(model)
 

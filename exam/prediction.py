@@ -1,6 +1,6 @@
 import joblib  # or any other library you used to dump the model
 import numpy as np
-
+import pickle
 
 class PredictionService:
     def __init__(self, model_path):
@@ -11,7 +11,7 @@ class PredictionService:
 
     def predict(self, question_id, comprehension, question_score, examiner_answer, student_answer, student_score ):
         # Preprocess the input features if necessary
-        input_data = (question_id, comprehension, question_score, student_answer, examiner_answer, student_score)
+        input_data = ([[question_id, comprehension, question_score, student_answer, examiner_answer, student_score]])
         input_data = np.array(input_data)  # Ensure input_data is a numpy array
         try:
             # Predict using the model
@@ -19,3 +19,4 @@ class PredictionService:
             return prediction[0]  # Assuming a single prediction is made
         except Exception as e:
             raise ValueError(f"Error making prediction: {e}")
+
