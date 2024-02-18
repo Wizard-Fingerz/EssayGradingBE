@@ -44,21 +44,39 @@ class PredictionService:
         if self.model is None:
             print("Model attribute is not initialized. Skipping prediction.")
             return None
+        
+        combined_text_features = f"{question_id} {comprehension} {question} {examiner_answer} {student_answer}"
+        
+        print(combined_text_features)
+        
+        text_numeric = question_score
+        print(text_numeric)
+        
+        # combined_text_preprocessed = combined_text_features.apply(preprocess_text)
+        combined_text_preprocessed = self.preprocess_text(combined_text_features)
+        
+        print(combined_text_preprocessed)
+        
+        input_data_text_vectorized = self.tfidf_vectorizer.transform([combined_text_preprocessed])
+        
+        print('input_data_text_vectorized',input_data_text_vectorized)
+        
 
-        # Preprocess text data
-        preprocessed_comprehension = self.preprocess_text(comprehension)
-        preprocessed_question = self.preprocess_text(question)
-        preprocessed_examiner_answer = self.preprocess_text(examiner_answer)
-        preprocessed_student_answer = self.preprocess_text(student_answer)
+        # # Preprocess text data
+        # preprocessed_comprehension = self.preprocess_text(comprehension)
+        # preprocessed_question = self.preprocess_text(question)
+        # preprocessed_examiner_answer = self.preprocess_text(examiner_answer)
+        # preprocessed_student_answer = self.preprocess_text(student_answer)
 
-        # Combine preprocessed text into a single string
-        input_text = f"{question_id} {preprocessed_comprehension} {preprocessed_question} {preprocessed_examiner_answer} {question_score} {preprocessed_student_answer}"
+        # # Combine preprocessed text into a single string
+        # input_text = f"{question_id} {preprocessed_comprehension} {preprocessed_question} {preprocessed_examiner_answer} {question_score} {preprocessed_student_answer}"
 
+        # input_text = self.preprocess_text(combined_input_text)
         # Vectorize input text using TF-IDF vectorizer
-        input_data_text = self.tfidf_vectorizer.transform([input_text])
+        
 
         # Combine numerical and text features
-        input_data_combined = pd.concat([pd.DataFrame([[question_score]]), pd.DataFrame(input_data_text.toarray())], axis=1)
+        X_combined_vectorized = pd.concat([pd.Series(text_numeric), pd.DataFrame(input_data_text_vectorized.toarray())], axis=1)
 
         try:
             # Suppress warnings if specified
@@ -66,10 +84,12 @@ class PredictionService:
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore")
                     # Make prediction using the model
-                    prediction = self.model.predict(input_data_combined)
+                    # prediction = self.model.predict(input_data_combined)
+                    prediction = self.model.predict(X_combined_vectorized)
             else:
                 # Make prediction using the model without suppressing warnings
-                prediction = self.model.predict(input_data_combined)
+                # prediction = self.model.predict(input_data_combined)
+                prediction = self.model.predict(X_combined_vectorized)
             
             return prediction[0]  # Assuming a single prediction is made
         except Exception as e:
