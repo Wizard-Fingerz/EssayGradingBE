@@ -74,6 +74,7 @@ class CourseQuestionDetailView(generics.RetrieveAPIView):
     queryset = CourseQuestion.objects.all()
     serializer_class = CourseQuestionSerializer
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication,]
     lookup_url_kwarg = 'course_id'
 
     def get_queryset(self):
@@ -123,6 +124,7 @@ class CoursesByExaminerView(generics.ListAPIView):
 class ExaminerStudentCourseRegistrationListView(generics.ListAPIView):
     serializer_class = StudentCourseRegistrationSerializer
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication,]
 
     def get_queryset(self):
         # Get the current examiner from the request user
@@ -174,6 +176,7 @@ class StudentCourseRegistrationView(generics.CreateAPIView):
 class StudentCourseListView(generics.ListAPIView):
     serializer_class = CourseSerializer
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication,]
 
     def get_queryset(self):
         # Retrieve the courses registered by the student
@@ -185,6 +188,7 @@ class StudentCourseListView(generics.ListAPIView):
 class StudentExamListView(generics.ListAPIView):
     serializer_class = GetExamSerializer
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication,]
 
     def get_queryset(self):
         # Retrieve the courses registered by the student
@@ -234,6 +238,8 @@ class ExamDetailView(generics.RetrieveAPIView):
 
 class ExamsWithQuestionsListView(generics.ListAPIView):
     serializer_class = ExamWithQuestionsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication,]
 
     def get_queryset(self):
         # Retrieve exams with questions created by the current examiner
@@ -267,6 +273,9 @@ class ExamResultUpdateView(generics.UpdateAPIView):
         serializer.save(student=self.request.user)
 
 class AnswerSubmissionView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication,]
+
     def post(self, request, *args, **kwargs):
         print(request.data)
         user = request.user  # Assuming the user is authenticated
@@ -342,6 +351,7 @@ class AnswerSubmissionView(views.APIView):
 class ExamResultScoreListAPIView(generics.ListAPIView):
     serializer_class = ExamResultScoreSerializer
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication,]
 
     def get_queryset(self):
         # Filter the queryset to retrieve only the exam result scores of the currently logged-in student
