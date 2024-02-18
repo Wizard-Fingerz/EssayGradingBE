@@ -284,15 +284,22 @@ class AnswerSubmissionView(views.APIView):
 
             for question_id, answer in answers_data.items():
                 question = get_object_or_404(CourseQuestion, id=question_id)
+
                 # Use PredictionService to predict student score
-                student_score = prediction_service.predict(
-                    question_id=question.course,  # Use the ID of the question
+                predicted_student_score = prediction_service.predict(
+                    question_id=question.course,
                     comprehension=question.comprehension,
                     question=question.question,
                     question_score=question.question_score,
                     examiner_answer=question.examiner_answer,
-                    student_answer=answer  # Pass student_answer from request data
+                    student_answer=answer
                 )
+
+                # Check if predicted score is greater than the question score
+                if predicted_student_score > question.question_score:
+                    student_score = question.question_score  # Set student_score to question_score
+                else:
+                    student_score = predicted_student_score
 
                 # Create or update ExamResult instance
                 exam_result, created = ExamResult.objects.get_or_create(
@@ -300,11 +307,28 @@ class AnswerSubmissionView(views.APIView):
                     question=question,
                     defaults={
                         'student_answer': answer,
-                        'student_score': student_score  # Include student score in defaults
+                        'student_score': student_score
                     }
                 )
+
                 # Update student answer and score if instance already exists
                 if not created:
+                    # If the instance already exists, re-run the prediction and update the score
+                    predicted_student_score = prediction_service.predict(
+                        question_id=question.course,
+                        comprehension=question.comprehension,
+                        question=question.question,
+                        question_score=question.question_score,
+                        examiner_answer=question.examiner_answer,
+                        student_answer=answer
+                    )
+
+                    # Check if predicted score is greater than the question score
+                    if predicted_student_score > question.question_score:
+                        student_score = question.question_score  # Set student_score to question_score
+                    else:
+                        student_score = predicted_student_score
+
                     exam_result.student_answer = answer
                     exam_result.student_score = student_score
                     exam_result.save()
@@ -314,4 +338,5 @@ class AnswerSubmissionView(views.APIView):
             # Log the exception for debugging
             print(f"An error occurred while saving exam result: {e}")
             return Response(f"An error occurred while saving exam result: {e}", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
