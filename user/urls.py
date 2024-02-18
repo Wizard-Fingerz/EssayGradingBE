@@ -11,9 +11,11 @@ router.register(r'', UserViewSet, basename = 'user')
 urlpatterns = [
     path('login/', CustomObtainAuthToken.as_view(), name='obtain_token'),
     path('student/register/', StudentRegistrationView.as_view(), name='student-registration'),
+    path('upload/students/', BulkStudentUploadAPIView.as_view(), name='bulk-student-registration'),
     path('student/register2/', StudentRegistrationView2.as_view(), name='student-registration'),
     path('examiner/register/', ExaminerRegistrationView.as_view(), name='examiner-registration'),
     path('students/', StudentListView.as_view(), name='student-list'),
+    
 ]
 
 urlpatterns += router.urls

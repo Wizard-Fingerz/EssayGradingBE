@@ -1,11 +1,16 @@
 from django.shortcuts import render
 from .models import *
+import csv
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework import viewsets
 from .serializers import *
 from rest_framework import generics
 from rest_framework.response import Response
+from rest_framework import generics, permissions, viewsets, views
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from django.contrib.auth.hashers import make_password
@@ -46,7 +51,8 @@ class CustomObtainAuthToken(ObtainAuthToken):
 
 class StudentRegistrationView(generics.CreateAPIView):
     serializer_class = StudentRegistrationSerializer
-    permission_classes = [AllowAny]
+    authentication_classes = [TokenAuthentication,]
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         # Create a mutable copy of the request data
@@ -79,6 +85,64 @@ class StudentRegistrationView(generics.CreateAPIView):
 
         serializer.save()
 
+class BulkStudentUploadAPIView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+    authentication_classes = [TokenAuthentication,]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        print('hello')
+        print(request.data)
+        # Check if the request contains a file
+        if 'file' not in request.data:
+            print('No file uploaded')
+            return Response({'error': 'No file uploaded'}, status=status.HTTP_400_BAD_REQUEST)
+
+        file = request.data['file']
+
+        # Check if the uploaded file is a CSV file
+        if not file.name.endswith('.csv'):
+            return Response({'error': 'Invalid file format. Please upload a CSV file'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate the header row of the CSV file
+        try:
+            decoded_file = file.read().decode('utf-8').splitlines()
+            reader = csv.reader(decoded_file)
+            header = next(reader)  # Read the header row
+            required_fields = ['first_name', 'last_name', 'matric_number', 'password']  # Define your required fields here
+            if not all(field in header for field in required_fields):
+                return Response({'error': 'Missing required fields in CSV header'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        students = []
+
+        # Parse the CSV file
+        try:
+            decoded_file = file.read().decode('utf-8').splitlines()
+            reader = csv.DictReader(decoded_file)
+            for row in reader:
+                # Encrypt the password before saving
+                row['password'] = make_password(row.get('password'))
+                serializer = StudentRegistrationSerializer(data=row)
+                if serializer.is_valid():
+                    students.append(serializer.validated_data)
+                else:
+                    return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create or update student records
+        created_students = []
+        for student_data in students:
+            serializer = StudentRegistrationSerializer(data=student_data)
+            if serializer.is_valid():
+                serializer.save()
+                created_students.append(serializer.data)
+            else:
+                return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({'success': f'{len(created_students)} students created successfully'}, status=status.HTTP_201_CREATED)
 
 class ExaminerRegistrationView(generics.CreateAPIView):
     serializer_class = ExaminerRegistrationSerializer
