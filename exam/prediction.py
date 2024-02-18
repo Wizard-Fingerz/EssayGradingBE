@@ -47,20 +47,12 @@ class PredictionService:
         
         combined_text_features = f"{question_id} {comprehension} {question} {examiner_answer} {student_answer}"
         
-        print(combined_text_features)
-        
         text_numeric = question_score
-        print(text_numeric)
         
         # combined_text_preprocessed = combined_text_features.apply(preprocess_text)
         combined_text_preprocessed = self.preprocess_text(combined_text_features)
         
-        print(combined_text_preprocessed)
-        
         input_data_text_vectorized = self.tfidf_vectorizer.transform([combined_text_preprocessed])
-        
-        print('input_data_text_vectorized',input_data_text_vectorized)
-        
 
         # # Preprocess text data
         # preprocessed_comprehension = self.preprocess_text(comprehension)
