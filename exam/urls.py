@@ -35,4 +35,6 @@ urlpatterns = [
     path('exam-results/<int:pk>/', ExamResultUpdateView.as_view(),
          name='exam-result-update'),
     path('submit-answer/<int:pk>/', AnswerSubmissionView.as_view(), name='submit-answer'),
+    path('exam-results/', ExamResultScoreListAPIView.as_view(), name='exam-results'),
+
 ]

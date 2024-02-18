@@ -44,4 +44,4 @@ class ExamResultAdmin(ImportExportModelAdmin):
 
 @admin.register(ExamResultScore)
 class ExamResultScoreAdmin(ImportExportModelAdmin):
-    list_display = ('student', 'course', 'exam_score', 'grade',)
+    list_display = ('student', 'course', 'exam_score', 'percentage_score', 'grade',)

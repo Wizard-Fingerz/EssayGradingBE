@@ -339,4 +339,12 @@ class AnswerSubmissionView(views.APIView):
             print(f"An error occurred while saving exam result: {e}")
             return Response(f"An error occurred while saving exam result: {e}", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class ExamResultScoreListAPIView(generics.ListAPIView):
+    serializer_class = ExamResultScoreSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # Filter the queryset to retrieve only the exam result scores of the currently logged-in student
+        return ExamResultScore.objects.filter(student=self.request.user.student)
+
 

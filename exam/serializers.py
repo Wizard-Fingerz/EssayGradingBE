@@ -139,3 +139,9 @@ class ExamResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExamResult
         fields = ['id', 'student', 'question', 'student_answer', 'student_score']
+
+
+class ExamResultScoreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExamResultScore
+        fields = ['id', 'course', 'exam_score', 'grade']

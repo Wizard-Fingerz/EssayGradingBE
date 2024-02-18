@@ -83,17 +83,19 @@ class ExamResult(models.Model):
         exam_result_score.save()
 
 class ExamResultScore(models.Model):
-    student = models.ForeignKey('Student', on_delete = models.CASCADE)
-    course = models.ForeignKey('Course', on_delete = models.CASCADE)
-    exam_score = models.IntegerField(null = True, blank = True)
+    student = models.ForeignKey('Student', on_delete=models.CASCADE)
+    course = models.ForeignKey('Course', on_delete=models.CASCADE)
+    exam_score = models.IntegerField(null=True, blank=True)
+    percentage_score = models.FloatField(null=True, blank=True)
     grade = models.CharField(max_length=2, blank=True)
 
     def __str__(self):
         return f"{self.student}'s exam score for {self.course}"
-    
+
     def calculate_grade(self):
         total_mark = self.course.exam.total_mark
         percent_score = (self.exam_score / total_mark) * 100
+        self.percentage_score = percent_score
         if percent_score >= 90:
             self.grade = 'A1'
         elif percent_score >= 80:
