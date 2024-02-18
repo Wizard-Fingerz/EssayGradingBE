@@ -6,8 +6,8 @@ from .models import *
 
 @admin.register(CourseQuestion)
 class CourseQuestionAdmin(ImportExportModelAdmin):
-    list_display = ('exam','comprehension', 'question',
-                    'examiner_answer', 'student_answer', 'question_score')
+    list_display = ('comprehension', 'question',
+                    'examiner_answer', 'question_score', 'course')
     search_fields = ['comprehension', 'question', 'examiner_answer']
     # list_filter = ('question_id__title', 'question_id__code')  # Assuming title and code are fields in the related model
 
@@ -35,3 +35,8 @@ class ExamAdmin(ImportExportModelAdmin):
         return obj.questions.count()
 
     get_questions_count.short_description = 'Number of Questions'
+
+
+@admin.register(ExamResult)
+class ExamResultAdmin(ImportExportModelAdmin):
+    list_display = ('id', 'student', 'question', 'student_answer', 'student_score')

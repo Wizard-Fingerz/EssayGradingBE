@@ -1,12 +1,14 @@
 from django.shortcuts import render
+from django.shortcuts import get_object_or_404
 from .prediction import *
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework import generics, permissions, viewsets
+from rest_framework import generics, permissions, viewsets, views
 from .models import Course, CourseQuestion
 from .serializers import *
 from rest_framework.authentication import TokenAuthentication
 from django.core.exceptions import ObjectDoesNotExist
+
 
 class CourseListCreateView(generics.ListCreateAPIView):
     queryset = Course.objects.all()
@@ -59,13 +61,14 @@ class CourseQuestionAnswerView(generics.UpdateAPIView):
 
 
 class ExaminerQuestionsListView(generics.ListAPIView):
-    serializer_class = CourseQuestionSerializer
+    serializer_class = ExamSerializer
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [TokenAuthentication]
 
     def get_queryset(self):
         # Retrieve the questions created by the authenticated examiner
-        return CourseQuestion.objects.filter(exam__examiner=self.request.user)
+        return Exam.objects.filter(examiner=self.request.user)
+
 
 class CourseQuestionDetailView(generics.RetrieveAPIView):
     queryset = CourseQuestion.objects.all()
@@ -78,6 +81,7 @@ class CourseQuestionDetailView(generics.RetrieveAPIView):
         course_id = self.kwargs.get(self.lookup_url_kwarg)
         return queryset.filter(course__id=course_id)
 
+
 class CourseQuestionListView(generics.ListAPIView):
     serializer_class = CourseQuestionSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -86,10 +90,11 @@ class CourseQuestionListView(generics.ListAPIView):
     def get_queryset(self):
         # Get the course ID from the URL query parameters or request body
         course_id = self.request.query_params.get('course_id')
-        
+
         # Filter course questions based on the provided course ID
         queryset = CourseQuestion.objects.filter(course_id=course_id)
         return queryset
+
 
 class CreateExamination(generics.CreateAPIView):
     queryset = Exam.objects.all()
@@ -127,6 +132,7 @@ class ExaminerStudentCourseRegistrationListView(generics.ListAPIView):
             course__examiner=examiner)
         return queryset
 
+
 class StudentCourseRegistrationView(generics.CreateAPIView):
     serializer_class = StudentCourseRegistrationSerializer2
     authentication_classes = [TokenAuthentication]
@@ -148,7 +154,8 @@ class StudentCourseRegistrationView(generics.CreateAPIView):
                 continue
 
             student, _ = Student.objects.get_or_create(user=request.user)
-            registration = StudentCourseRegistration.objects.create(student=student, course=course)
+            registration = StudentCourseRegistration.objects.create(
+                student=student, course=course)
             registrations.append(registration)
 
         # Return a 201 response
@@ -170,7 +177,8 @@ class StudentCourseListView(generics.ListAPIView):
 
     def get_queryset(self):
         # Retrieve the courses registered by the student
-        registered_courses = StudentCourseRegistration.objects.filter(student=self.request.user.student)
+        registered_courses = StudentCourseRegistration.objects.filter(
+            student=self.request.user.student)
         return [registration.course for registration in registered_courses]
 
 
@@ -180,11 +188,14 @@ class StudentExamListView(generics.ListAPIView):
 
     def get_queryset(self):
         # Retrieve the courses registered by the student
-        registered_courses = StudentCourseRegistration.objects.filter(student=self.request.user.student)
-        
+        registered_courses = StudentCourseRegistration.objects.filter(
+            student=self.request.user.student)
+
         # Get exams for the registered courses
-        exams = Exam.objects.filter(course__in=registered_courses.values_list('course', flat=True))
+        exams = Exam.objects.filter(
+            course__in=registered_courses.values_list('course', flat=True))
         return exams
+
 
 class ExamCreateView(generics.CreateAPIView):
     queryset = Exam.objects.all()
@@ -195,11 +206,14 @@ class ExamCreateView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         print(request.data)
         questions_data = request.data.get('questions', [])
+        course = request.data.get('course')
+        print(course)
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=False)
 
         if serializer.errors:
+            print(serializer.errors)
             return Response({'detail': 'Validation Error', 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer.validated_data['examiner'] = request.user
@@ -209,6 +223,7 @@ class ExamCreateView(generics.CreateAPIView):
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
 
 class ExamDetailView(generics.RetrieveAPIView):
     queryset = Exam.objects.all()
@@ -252,25 +267,66 @@ class ExamResultUpdateView(generics.UpdateAPIView):
         serializer.save(student=self.request.user)
 
 
-class AnswerSubmissionView(generics.UpdateAPIView):
-    queryset = CourseQuestion.objects.all()  # Specify the queryset
-    serializer_class = CourseQuestionSerializer
-
-    def update(self, request, *args, **kwargs):
+class AnswerSubmissionView(views.APIView):
+    def post(self, request, *args, **kwargs):
         print(request.data)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
+        user = request.user  # Assuming the user is authenticated
 
-        # Extract student's answer from the request data
-        student_answer = serializer.validated_data.get('student_answer')
+        # Check if the user is authenticated
+        if not user.is_authenticated:
+            return Response("User is not authenticated.", status=status.HTTP_401_UNAUTHORIZED)
 
-        # Use your prediction service to grade the answer
-        prediction_service = PredictionService()  # Initialize your prediction service
-        student_score = prediction_service.predict(student_answer)
+        # Assuming the request data contains question IDs mapped to answers
+        answers_data = request.data
 
-        # Update the model instance with the graded score
-        instance.student_score = student_score
-        instance.save()
+        model_path = './model/dt_model.joblib'
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        model = joblib.load(model_path)
+        print(model)
+
+        try:
+            model_path = './model/dt_model.joblib'
+
+            model = joblib.load(model_path)
+            print(model)
+
+            prediction_service = PredictionService(
+                model_path)  # Initialize PredictionService
+            
+            print('hello world')
+
+            for question_id, answer in answers_data.items():
+                question = get_object_or_404(CourseQuestion, id=question_id)
+
+                print(question.question)
+
+                # Use PredictionService to predict student score
+                student_score = prediction_service.predict(
+                    question_id=question_id,  # Use the ID of the question
+                    comprehension=question.comprehension,
+                    question=question.question,
+                    question_score=question.question_score,
+                    answer=answer,
+                    examiner_answer=question.examiner_answer
+                )
+
+                # Create or update ExamResult instance
+                exam_result, created = ExamResult.objects.get_or_create(
+                    student=user.student,  # Use user's related Student instance
+                    question=question,
+                    defaults={
+                        'student_answer': answer,
+                        'student_score': student_score  # Include student score in defaults
+                    }
+                )
+                # Update student answer and score if instance already exists
+                if not created:
+                    exam_result.student_answer = answer
+                    exam_result.student_score = student_score
+                    exam_result.save()
+
+            return Response("Exam results saved successfully", status=status.HTTP_201_CREATED)
+        except Exception as e:
+            # Log the exception for debugging
+            print(f"An error occurred while saving exam result: {e}")
+            return Response(f"An error occurred while saving exam result: {e}", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
