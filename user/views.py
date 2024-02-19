@@ -14,6 +14,9 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from django.contrib.auth.hashers import make_password
+from django.http import JsonResponse
+
+
 # Create your views here.
 
 
@@ -85,70 +88,118 @@ class StudentRegistrationView(generics.CreateAPIView):
 
         serializer.save()
 
+# class BulkStudentUploadAPIView(APIView):
+#     parser_classes = (MultiPartParser, FormParser)
+#     authentication_classes = [TokenAuthentication,]
+#     permission_classes = [permissions.IsAuthenticated]
+
+#     def post(self, request, *args, **kwargs):
+#         print('hello')
+#         print(request.data)
+#         # Check if the request contains a file
+#         if 'file' not in request.data:
+#             print('No file uploaded')
+#             return Response({'error': 'No file uploaded'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         file = request.data['file']
+
+#         # Check if the uploaded file is a CSV file
+#         if not file.name.endswith('.csv'):
+#             return Response({'error': 'Invalid file format. Please upload a CSV file'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         # Validate the header row of the CSV file
+#         try:
+#             decoded_file = file.read().decode('utf-8').splitlines()
+#             reader = csv.reader(decoded_file)
+#             header = next(reader)  # Read the header row
+#             print(header)
+#             required_fields = ['first_name', 'last_name', 'matric_number', 'password']  # Define your required fields here
+#             if not all(field in header for field in required_fields):
+#                 return Response({'error': 'Missing required fields in CSV header'}, status=status.HTTP_400_BAD_REQUEST)
+#             else:
+#                 print('hello')
+#                 students = []
+
+#                 # Parse the CSV file
+#                 print(decoded_file)
+#                 reader = csv.DictReader(decoded_file)
+#                 for row in reader:
+#                     # Validate and process each row
+#                     serializer = StudentRegistrationSerializer(data=row)
+
+#                     print('hello  after serializer')
+#                     print(serializer)
+#                     if serializer.is_valid():
+#                         # Encrypt the password before saving
+#                         print(serializer.errors)
+#                         serializer.validated_data['is_student'] = True
+#                         serializer.validated_data['username'] = serializer.validated_data['matric_number']
+#                         row['password'] = make_password(row.get('password'))
+#                         # Save the student record
+#                         student = serializer.save()
+#                         students.append(student)
+#                     else:
+#                         return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+#         except Exception as e:
+#             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        
+#         # Create or update student records
+#         created_students = []
+#         for student_data in students:
+#             serializer = StudentRegistrationSerializer(data=student_data)
+#             if serializer.is_valid():
+#                 serializer.save()
+#                 created_students.append(serializer.data)
+#             else:
+#                 return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+#         return Response({'success': f'{len(created_students)} students created successfully'}, status=status.HTTP_201_CREATED)
+
+
 class BulkStudentUploadAPIView(APIView):
     parser_classes = (MultiPartParser, FormParser)
-    authentication_classes = [TokenAuthentication,]
+    authentication_classes = [TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        print('hello')
-        print(request.data)
-        # Check if the request contains a file
-        if 'file' not in request.data:
-            print('No file uploaded')
-            return Response({'error': 'No file uploaded'}, status=status.HTTP_400_BAD_REQUEST)
-
-        file = request.data['file']
-
-        # Check if the uploaded file is a CSV file
-        if not file.name.endswith('.csv'):
-            return Response({'error': 'Invalid file format. Please upload a CSV file'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Validate the header row of the CSV file
         try:
+            if 'file' not in request.data:
+                return JsonResponse({'error': 'No file uploaded'}, status=status.HTTP_400_BAD_REQUEST)
+
+            file = request.data['file']
+
+            if not file.name.endswith('.csv'):
+                return JsonResponse({'error': 'Invalid file format. Please upload a CSV file'}, status=status.HTTP_400_BAD_REQUEST)
+
+            students_created = 0
+
+            # Parse the CSV file
             decoded_file = file.read().decode('utf-8').splitlines()
-            reader = csv.reader(decoded_file)
-            header = next(reader)  # Read the header row
-            print(header)
-            required_fields = ['first_name', 'last_name', 'matric_number', 'password']  # Define your required fields here
-            if not all(field in header for field in required_fields):
-                return Response({'error': 'Missing required fields in CSV header'}, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                print('hello')
-                students = []
+            reader = csv.DictReader(decoded_file)
 
-                # Parse the CSV file
-                print(decoded_file)
-                reader = csv.DictReader(decoded_file)
-                for row in reader:
-                    # Validate and process each row
-                    serializer = StudentRegistrationSerializer(data=row)
-                    print('hello  after serializer')
-                    print(serializer)
-                    if serializer.is_valid():
-                        # Encrypt the password before saving
-                        print(serializer.errors)
-                        row['password'] = make_password(row.get('password'))
-                        # Save the student record
-                        student = serializer.save()
-                        students.append(student)
-                    else:
-                        return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            for row in reader:
+                # Validate and process each row
+                if all(field in row for field in ['first_name', 'last_name', 'matric_number', 'password']):
+                    # Create User instance
+                    user = User.objects.create_student(
+                        username=row['matric_number'],
+                        first_name=row['first_name'],
+                        last_name=row['last_name'],
+                        password=row['password']
+                    )
+                    # Additional fields if necessary
+                    user.is_student = True
+                    user.save()
+                    students_created += 1
+                else:
+                    return JsonResponse({'error': 'Missing required fields in CSV row'}, status=status.HTTP_400_BAD_REQUEST)
 
+            return JsonResponse({'success': f'{students_created} students created successfully'}, status=status.HTTP_201_CREATED)
         
-        # Create or update student records
-        created_students = []
-        for student_data in students:
-            serializer = StudentRegistrationSerializer(data=student_data)
-            if serializer.is_valid():
-                serializer.save()
-                created_students.append(serializer.data)
-            else:
-                return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({'success': f'{len(created_students)} students created successfully'}, status=status.HTTP_201_CREATED)
 
 class ExaminerRegistrationView(generics.CreateAPIView):
     serializer_class = ExaminerRegistrationSerializer
