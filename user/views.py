@@ -109,29 +109,35 @@ class BulkStudentUploadAPIView(APIView):
             decoded_file = file.read().decode('utf-8').splitlines()
             reader = csv.reader(decoded_file)
             header = next(reader)  # Read the header row
+            print(header)
             required_fields = ['first_name', 'last_name', 'matric_number', 'password']  # Define your required fields here
             if not all(field in header for field in required_fields):
                 return Response({'error': 'Missing required fields in CSV header'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                print('hello')
+                students = []
+
+                # Parse the CSV file
+                print(decoded_file)
+                reader = csv.DictReader(decoded_file)
+                for row in reader:
+                    # Validate and process each row
+                    serializer = StudentRegistrationSerializer(data=row)
+                    print('hello  after serializer')
+                    print(serializer)
+                    if serializer.is_valid():
+                        # Encrypt the password before saving
+                        print(serializer.errors)
+                        row['password'] = make_password(row.get('password'))
+                        # Save the student record
+                        student = serializer.save()
+                        students.append(student)
+                    else:
+                        return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        students = []
-
-        # Parse the CSV file
-        try:
-            decoded_file = file.read().decode('utf-8').splitlines()
-            reader = csv.DictReader(decoded_file)
-            for row in reader:
-                # Encrypt the password before saving
-                row['password'] = make_password(row.get('password'))
-                serializer = StudentRegistrationSerializer(data=row)
-                if serializer.is_valid():
-                    students.append(serializer.validated_data)
-                else:
-                    return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
+        
         # Create or update student records
         created_students = []
         for student_data in students:
