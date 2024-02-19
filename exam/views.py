@@ -363,6 +363,8 @@ class ExamResultScoreListAPIView(generics.ListAPIView):
 
 class CourseBulkUploadAPIView(APIView):
     parser_classes = (MultiPartParser, FormParser)
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         try:
