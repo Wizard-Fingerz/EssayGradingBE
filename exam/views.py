@@ -8,6 +8,9 @@ from .models import Course, CourseQuestion
 from .serializers import *
 from rest_framework.authentication import TokenAuthentication
 from django.core.exceptions import ObjectDoesNotExist
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+import csv
 
 
 class CourseListCreateView(generics.ListCreateAPIView):
@@ -358,3 +361,40 @@ class ExamResultScoreListAPIView(generics.ListAPIView):
         return ExamResultScore.objects.filter(student=self.request.user.student)
 
 
+class CourseBulkUploadAPIView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+
+    def post(self, request, *args, **kwargs):
+        try:
+            if 'file' not in request.data:
+                return Response({'error': 'No file uploaded'}, status=status.HTTP_400_BAD_REQUEST)
+
+            file = request.data['file']
+
+            if not file.name.endswith('.csv'):
+                return Response({'error': 'Invalid file format. Please upload a CSV file'}, status=status.HTTP_400_BAD_REQUEST)
+
+            courses_created = 0
+
+            # Parse the CSV file
+            decoded_file = file.read().decode('utf-8').splitlines()
+            reader = csv.DictReader(decoded_file)
+
+            for row in reader:
+                if all(field in row for field in ['first_name', 'last_name', 'matric_number', 'password']):
+                    # Create Course instance
+                    course = Course(
+                        examiner=request.user,
+                        title=row.get('title'),
+                        code=row.get('code'),
+                        description=row.get('description')
+                    )
+                    course.save()
+                    courses_created += 1
+                else:
+                    return Response({'error': 'Missing required fields in CSV row'}, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response({'success': f'{courses_created} courses created successfully'}, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

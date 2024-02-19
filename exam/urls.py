@@ -8,6 +8,7 @@ urlpatterns = [
     #     path('register-course/', StudentCourseRegistrationCreateView.as_view(),
     #          name='register-course'),
     path('courses/', CourseListCreateView.as_view(), name='course-list-create'),
+    path('upload/courses/', CourseBulkUploadAPIView.as_view(), name='bulk-course-list-create'),
     path('course-questions/', CourseQuestionCreateView.as_view(),
          name='course-question-create'),
     path('create-exam/', CreateExamination.as_view(),
