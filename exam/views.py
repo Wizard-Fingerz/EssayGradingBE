@@ -64,13 +64,13 @@ class CourseQuestionAnswerView(generics.UpdateAPIView):
 
 
 class ExaminerQuestionsListView(generics.ListAPIView):
-    serializer_class = ExamSerializer
+    serializer_class = CourseQuestionSerializer
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [TokenAuthentication]
 
     def get_queryset(self):
         # Retrieve the questions created by the authenticated examiner
-        return Exam.objects.filter(examiner=self.request.user)
+        return CourseQuestion.objects.filter(course__examiner=self.request.user)
 
 
 class CourseQuestionDetailView(generics.RetrieveAPIView):
@@ -358,7 +358,7 @@ class ExamResultScoreListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         # Filter the queryset to retrieve only the exam result scores of the currently logged-in student
-        return ExamResultScore.objects.filter(student=self.request.user.student)
+        return ExamResultScore.objects.filter(student=self.request.user)
 
 
 class CourseBulkUploadAPIView(APIView):
@@ -383,7 +383,7 @@ class CourseBulkUploadAPIView(APIView):
             reader = csv.DictReader(decoded_file)
 
             for row in reader:
-                if all(field in row for field in ['first_name', 'last_name', 'matric_number', 'password']):
+                if all(field in row for field in ['title', 'code', 'description',]):
                     # Create Course instance
                     course = Course(
                         examiner=request.user,
