@@ -205,6 +205,18 @@ class StudentExamListView(generics.ListAPIView):
         return exams
 
 
+class ExaminerExamListView(generics.ListAPIView):
+    serializer_class = GetExamSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication,]
+
+    def get_queryset(self):
+        exams = Exam.objects.filter(examiner = self.request.user)
+        return exams
+
+
+
+
 class ExamCreateView(generics.CreateAPIView):
     queryset = Exam.objects.all()
     serializer_class = CreateExamSerializer

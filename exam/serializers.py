@@ -31,6 +31,7 @@ class ExamSerializer(serializers.ModelSerializer):
 class GetExamSerializer(serializers.ModelSerializer):
     questions = CourseQuestionSerializer(many=True)
     examiner = serializers.CharField(source='examiner.username', read_only=True)
+    course_code = serializers.CharField(source='course.code', read_only=True)
     course_name = serializers.CharField(source='course.title', read_only=True)
 
     class Meta:
