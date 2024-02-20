@@ -80,6 +80,7 @@ class ExamResult(models.Model):
         # Update or create ExamResultScore instance for the student
         exam_result_score, _ = ExamResultScore.objects.get_or_create(student=self.student, course=self.question.course)
         exam_result_score.exam_score = exam_score
+        exam_result_score.calculate_grade()
         exam_result_score.save()
 
 class ExamResultScore(models.Model):

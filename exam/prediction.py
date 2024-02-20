@@ -71,7 +71,7 @@ class PredictionService:
 
     def predict(self, question_id, comprehension, question, examiner_answer, student_answer, question_score, suppress_warning=True):
         # Specify weights for examiner answer and comprehension
-        weights = {'examiner': 0.8, 'comprehension': 0.2}
+        weights = {'examiner': 0.9, 'comprehension': 0.1}
         
         # Calculate semantic similarity
         semantic_similarity = self.calculate_combined_similarity(student_answer, examiner_answer, comprehension, weights)

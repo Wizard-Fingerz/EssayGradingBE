@@ -142,6 +142,12 @@ class ExamResultSerializer(serializers.ModelSerializer):
 
 
 class ExamResultScoreSerializer(serializers.ModelSerializer):
+    examiner = serializers.CharField(source='course.examiner.username', read_only=True)
+    course_name = serializers.CharField(source='course.title', read_only=True)
+    course_code = serializers.CharField(source='course.code', read_only=True)
+    student = serializers.CharField(source='student.user', read_only=True)
+
+
     class Meta:
         model = ExamResultScore
-        fields = ['id', 'course', 'exam_score', 'grade']
+        fields = ['id', 'student', 'course_code', 'exam_score', 'examiner', 'grade', 'course_name', 'percentage_score']

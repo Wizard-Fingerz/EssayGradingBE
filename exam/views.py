@@ -11,6 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 import csv
+from django.db.models import Q
 
 
 class CourseListCreateView(generics.ListCreateAPIView):
@@ -333,8 +334,18 @@ class ExamResultScoreListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         # Filter the queryset to retrieve only the exam result scores of the currently logged-in student
-        return ExamResultScore.objects.filter(student=self.request.user)
+        return ExamResultScore.objects.filter(student=self.request.user.student)
 
+
+class ExaminerExamResultScoreListAPIView(generics.ListAPIView):
+    serializer_class = ExamResultScoreSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication,]
+
+    def get_queryset(self):
+        # Filter the queryset to retrieve only the exam result scores related to courses where the examiner is the currently logged-in user
+        courses = Course.objects.filter(examiner=self.request.user)
+        return ExamResultScore.objects.filter(course__in=courses)
 
 class CourseBulkUploadAPIView(APIView):
     parser_classes = (MultiPartParser, FormParser)
