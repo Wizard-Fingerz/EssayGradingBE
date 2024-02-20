@@ -1,9 +1,6 @@
 import joblib
 import numpy as np
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.pipeline import Pipeline
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
@@ -11,83 +8,6 @@ import warnings
 
 warnings.simplefilter("ignore")
 
-# class PredictionService:
-#     def __init__(self):
-#         self.model = self.load_model()
-#         self.tfidf_vectorizer = self.load_tfidf_vectorizer()
-
-#     def load_model(self):
-#         model_path = './model/dt_model.joblib'
-#         try:
-#             model = joblib.load(model_path)
-#             return model
-#         except Exception as e:
-#             print(f"Error loading the model: {e}")
-#             return None
-
-#     def load_tfidf_vectorizer(self):
-#         vectorizer_path = './model/tfidf_vectorizer.joblib'
-#         try:
-#             vectorizer = joblib.load(vectorizer_path)
-#             return vectorizer
-#         except Exception as e:
-#             print(f"Error loading the TF-IDF vectorizer: {e}")
-#             return None
-
-#     def preprocess_text(self, text):
-#         # Tokenize the text into words
-#         tokens = word_tokenize(text.lower())
-#         # Remove stopwords
-#         stop_words = set(stopwords.words('english'))
-#         tokens = [word for word in tokens if word not in stop_words]
-#         # Lemmatize the words
-#         lemmatizer = WordNetLemmatizer()
-#         tokens = [lemmatizer.lemmatize(word) for word in tokens]
-#         # Join the preprocessed tokens back into a single string
-#         return ' '.join(tokens)
-
-#     def predict(self, question_id, comprehension, question, examiner_answer, student_answer, question_score):
-#         if self.model is None or self.tfidf_vectorizer is None:
-#             print("Model or TF-IDF vectorizer is not initialized. Skipping prediction.")
-#             return None
-
-#         # Preprocess text data
-#         preprocessed_comprehension = self.preprocess_text(comprehension)
-#         preprocessed_question = self.preprocess_text(question)
-#         preprocessed_examiner_answer = self.preprocess_text(examiner_answer)
-#         preprocessed_student_answer = self.preprocess_text(student_answer)
-
-#         # Combine preprocessed text into a single string
-#         combined_text = f"{preprocessed_comprehension} {preprocessed_question} {preprocessed_examiner_answer} {preprocessed_student_answer}"
-
-#         try:
-#             # Vectorize input text using TF-IDF vectorizer
-#             input_data_vectorized = self.tfidf_vectorizer.transform([combined_text])
-
-#             # Combine numerical and text features
-#             X_combined = pd.concat([pd.DataFrame(input_data_vectorized.toarray()), pd.DataFrame(question_score)], axis=1)
-
-#             # Make prediction using the model
-#             prediction = self.model.predict(X_combined)
-#             return prediction[0]  # Assuming a single prediction is made
-#         except Exception as e:
-#             print(f"Error making prediction: {e}")
-#             return None
-
-#     def fit(self, X, y):
-#         # Train the model
-#         try:
-#             self.model.fit(X, y)
-#         except Exception as e:
-#             print(f"Error fitting the model: {e}")
-
-#     def save_model(self, model_path='./model/dt_model.joblib'):
-#         # Save the trained model
-#         try:
-#             joblib.dump(self.model, model_path)
-#             print("Model saved successfully.")
-#         except Exception as e:
-#             print(f"Error saving the model: {e}")
 
 
 import joblib
@@ -140,15 +60,18 @@ class PredictionService:
         
         # Calculate similarity between student answer and comprehension
         similarity_comprehension = nlp(preprocessed_student_answer).similarity(nlp(preprocessed_comprehension))
+
         
         # Combine similarity scores using weights
         combined_similarity = (weights['examiner'] * similarity_examiner) + (weights['comprehension'] * similarity_comprehension)
+
+        print(combined_similarity)
         
         return combined_similarity
 
     def predict(self, question_id, comprehension, question, examiner_answer, student_answer, question_score, suppress_warning=True):
         # Specify weights for examiner answer and comprehension
-        weights = {'examiner': 0.7, 'comprehension': 0.3}
+        weights = {'examiner': 0.8, 'comprehension': 0.2}
         
         # Calculate semantic similarity
         semantic_similarity = self.calculate_combined_similarity(student_answer, examiner_answer, comprehension, weights)
@@ -156,7 +79,9 @@ class PredictionService:
         # Assuming you have loaded your model and preprocessed the text
         
         # Make prediction using your machine learning model
-        predicted_student_score = self.model.predict([semantic_similarity])
+        # Concatenate the semantic similarity and question score as features
+        features = np.array([[semantic_similarity, question_score]])  # Reshape the input to a 2D array
+        predicted_student_score = self.model.predict(features)
         
         # Ensure the predicted score does not exceed the question score
         predicted_student_score = min(predicted_student_score, question_score)
