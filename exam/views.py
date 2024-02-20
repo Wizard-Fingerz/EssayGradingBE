@@ -275,31 +275,28 @@ class ExamResultUpdateView(generics.UpdateAPIView):
         # Save the updated instance
         serializer.save(student=self.request.user)
 
+
 class AnswerSubmissionView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
-    authentication_classes = [TokenAuthentication,]
+    authentication_classes = [TokenAuthentication]
 
     def post(self, request, *args, **kwargs):
-        print(request.data)
-        user = request.user  # Assuming the user is authenticated
+        user = request.user
 
-        # Check if the user is authenticated
         if not user.is_authenticated:
             return Response("User is not authenticated.", status=status.HTTP_401_UNAUTHORIZED)
 
-        # Assuming the request data contains question IDs mapped to answers
         answers_data = request.data
         try:
-            print('Initializing PredictionService...')
-            prediction_service = PredictionService()  # Initialize PredictionService
-            print('PredictionService initialized successfully.')
-
             for question_id, answer in answers_data.items():
                 question = get_object_or_404(CourseQuestion, id=question_id)
-
-                # Use PredictionService to predict student score
-                predicted_student_score = prediction_service.predict(
-                    question_id=question.course,
+                
+                # Initialize PredictionService for each question
+                prediction_service = PredictionService()
+                
+                # Predict student score
+                student_score = prediction_service.predict(
+                    question_id=question_id,
                     comprehension=question.comprehension,
                     question=question.question,
                     question_score=question.question_score,
@@ -307,15 +304,9 @@ class AnswerSubmissionView(views.APIView):
                     student_answer=answer
                 )
 
-                # Check if predicted score is greater than the question score
-                if predicted_student_score > question.question_score:
-                    student_score = question.question_score  # Set student_score to question_score
-                else:
-                    student_score = predicted_student_score
-
                 # Create or update ExamResult instance
                 exam_result, created = ExamResult.objects.get_or_create(
-                    student=user.student,  # Use user's related Student instance
+                    student=user.student,
                     question=question,
                     defaults={
                         'student_answer': answer,
@@ -325,22 +316,6 @@ class AnswerSubmissionView(views.APIView):
 
                 # Update student answer and score if instance already exists
                 if not created:
-                    # If the instance already exists, re-run the prediction and update the score
-                    predicted_student_score = prediction_service.predict(
-                        question_id=question.course,
-                        comprehension=question.comprehension,
-                        question=question.question,
-                        question_score=question.question_score,
-                        examiner_answer=question.examiner_answer,
-                        student_answer=answer
-                    )
-
-                    # Check if predicted score is greater than the question score
-                    if predicted_student_score > question.question_score:
-                        student_score = question.question_score  # Set student_score to question_score
-                    else:
-                        student_score = predicted_student_score
-
                     exam_result.student_answer = answer
                     exam_result.student_score = student_score
                     exam_result.save()
