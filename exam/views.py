@@ -244,6 +244,28 @@ class ExamCreateView(generics.CreateAPIView):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+class BulkUploadExamQuestions(APIView):
+    def post(self, request, format=None):
+        csv_file = request.FILES['file']
+        if not csv_file.name.endswith('.csv'):
+            return Response({'error': 'Please upload a CSV file.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        questions_data = []
+        try:
+            decoded_file = csv_file.read().decode('utf-8').splitlines()
+            reader = csv.DictReader(decoded_file)
+            for row in reader:
+                questions_data.append(row)
+        except Exception as e:
+            return Response({'error': 'Invalid CSV format.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = CreateExamSerializer(data={'questions': questions_data})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ExamDetailView(generics.RetrieveAPIView):
     queryset = Exam.objects.all()

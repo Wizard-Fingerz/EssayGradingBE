@@ -1,5 +1,7 @@
 from django.db import models
 from user.models import *
+from django.db.models import Sum
+
 
 # Create your models here.
 
@@ -68,15 +70,16 @@ class ExamResult(models.Model):
     student_answer = models.TextField(null=True, blank=True)
     student_score = models.IntegerField(null=True, blank=True)
     
-
     def __str__(self):
         return f"{self.student.user}'s answer to {self.question}"
     
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Calculate total exam score for the student
-        exam_score = ExamResult.objects.filter(student=self.student).aggregate(total_score=models.Sum('student_score'))['total_score']
+        
+        # Calculate total exam score for the student for the specific course examination
+        exam_score = ExamResult.objects.filter(student=self.student, question__course=self.question.course).aggregate(total_score=Sum('student_score'))['total_score']
         exam_score = exam_score if exam_score is not None else 0
+        
         # Update or create ExamResultScore instance for the student
         exam_result_score, _ = ExamResultScore.objects.get_or_create(student=self.student, course=self.question.course)
         exam_result_score.exam_score = exam_score

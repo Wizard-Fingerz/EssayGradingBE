@@ -21,6 +21,7 @@ urlpatterns = [
     path('courses-by-examiner/', CoursesByExaminerView.as_view(),
          name='courses-by-examiner'),
     path('exam-create/', ExamCreateView.as_view(), name='create-exam'),
+    path('upload/questions/', BulkUploadExamQuestions.as_view(), name='bulk-create-exam'),
     path('exam-detail/<int:pk>/', ExamDetailView.as_view(), name='exam-detail'),
     path('exams-with-questions/', ExamsWithQuestionsListView.as_view(),
          name='exams-with-questions'),
