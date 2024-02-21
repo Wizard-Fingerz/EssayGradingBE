@@ -100,15 +100,15 @@ class ExamResultScore(models.Model):
         total_mark = self.course.exam.total_mark
         percent_score = (self.exam_score / total_mark) * 100
         self.percentage_score = percent_score
-        if percent_score >= 90:
+        if percent_score >= 70:
             self.grade = 'A1'
-        elif percent_score >= 80:
-            self.grade = 'B2'
-        elif percent_score >= 70:
-            self.grade = 'C6'
         elif percent_score >= 60:
-            self.grade = 'D7'
+            self.grade = 'B2'
         elif percent_score >= 50:
+            self.grade = 'C6'
+        elif percent_score >= 40:
+            self.grade = 'D7'
+        elif percent_score >= 30:
             self.grade = 'E8'
         else:
             self.grade = 'F9'
