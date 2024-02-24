@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework import generics, permissions, viewsets, views
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.permissions import AllowAny
@@ -230,3 +231,9 @@ class StudentRegistrationView2(generics.CreateAPIView):
 class StudentListView(generics.ListAPIView):
     queryset = User.objects.filter(is_student=True)
     serializer_class = StudentsListSerializer
+
+
+class StudentDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = StudentsListSerializer
+    permission_classes = [permissions.IsAuthenticated]

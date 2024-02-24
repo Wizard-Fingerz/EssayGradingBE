@@ -7,6 +7,7 @@ from rest_framework import generics, permissions, viewsets, views
 from .models import Course, CourseQuestion
 from .serializers import *
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -420,3 +421,21 @@ class CourseBulkUploadAPIView(APIView):
 
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CourseDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = Course.objects.all()
+    serializer_class = CourseSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class QuestionDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = CourseQuestion.objects.all()
+    serializer_class = CourseQuestionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class ExamDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = Exam.objects.all()
+    serializer_class = ExamSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
