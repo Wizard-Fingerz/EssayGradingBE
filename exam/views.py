@@ -518,3 +518,23 @@ class GenerateExamSlipPDF(APIView):
 
         return response
 
+class ExamActivationView(generics.UpdateAPIView):
+    serializer_class = ExamSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get_queryset(self):
+        return Exam.objects.filter(examiner=self.request.user)
+
+    def patch(self, request, *args, **kwargs):
+        instance = self.get_object()
+        is_activate = request.data.get('is_activate', None)
+
+        if is_activate is None:
+            return Response({"is_activate": ["This field is required."]}, status=status.HTTP_400_BAD_REQUEST)
+
+        instance.is_activate = is_activate
+        instance.save()
+
+        return Response(self.get_serializer(instance).data)
+ 
