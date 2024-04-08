@@ -52,5 +52,8 @@ urlpatterns = [
          QuestionDetailView.as_view(), name='delete-course-question'),
     path('generate-exam-slip-pdf/', GenerateExamSlipPDF.as_view(),
          name='generate-exam-slip-pdf'),
+    path('generate-exam-pdf/', GenerateExamsPDF.as_view(),
+         name='generate-exam-pdf'),
+    path('start-end-exam/<int:pk>/', ExamActivationView.as_view(), name = 'exam-activation'),
 
 ]
