@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from .prediction import *
+from django.http import HttpResponse, HttpResponseForbidden
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import generics, permissions, viewsets, views
@@ -12,6 +13,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 import csv
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image, Spacer
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
 from django.db.models import Q
 
 
@@ -212,10 +217,8 @@ class ExaminerExamListView(generics.ListAPIView):
     authentication_classes = [TokenAuthentication,]
 
     def get_queryset(self):
-        exams = Exam.objects.filter(examiner = self.request.user)
+        exams = Exam.objects.filter(examiner=self.request.user)
         return exams
-
-
 
 
 class ExamCreateView(generics.CreateAPIView):
@@ -244,6 +247,7 @@ class ExamCreateView(generics.CreateAPIView):
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
 
 class BulkUploadExamQuestions(APIView):
     def post(self, request, format=None):
@@ -326,10 +330,10 @@ class AnswerSubmissionView(views.APIView):
         try:
             for question_id, answer in answers_data.items():
                 question = get_object_or_404(CourseQuestion, id=question_id)
-                
+
                 # Initialize PredictionService for each question
                 prediction_service = PredictionService()
-                
+
                 # Predict student score
                 student_score = prediction_service.predict(
                     question_id=question_id,
@@ -362,6 +366,7 @@ class AnswerSubmissionView(views.APIView):
             print(f"An error occurred while saving exam result: {e}")
             return Response(f"An error occurred while saving exam result: {e}", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
 class ExamResultScoreListAPIView(generics.ListAPIView):
     serializer_class = ExamResultScoreSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -381,6 +386,7 @@ class ExaminerExamResultScoreListAPIView(generics.ListAPIView):
         # Filter the queryset to retrieve only the exam result scores related to courses where the examiner is the currently logged-in user
         courses = Course.objects.filter(examiner=self.request.user)
         return ExamResultScore.objects.filter(course__in=courses)
+
 
 class CourseBulkUploadAPIView(APIView):
     parser_classes = (MultiPartParser, FormParser)
@@ -428,6 +434,7 @@ class CourseDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = CourseSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+
 class QuestionDetailView(RetrieveUpdateDestroyAPIView):
     queryset = CourseQuestion.objects.all()
     serializer_class = CourseQuestionSerializer
@@ -438,4 +445,75 @@ class ExamDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Exam.objects.all()
     serializer_class = ExamSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+
+class GenerateExamSlipPDF(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def apply_watermark(self, canvas, watermark):
+        width, height = letter
+        canvas.saveState()
+        canvas.drawImage(watermark, 0, 0, width*0.2, height*0.1)
+        canvas.restoreState()
+        
+        
+    def get(self, request):
+        # Get the currently authenticated student
+        student = request.user.student
+        user = request.user
+        username = user.matric_number
+        first_name = user.first_name
+        last_name = user.last_name
+
+        # Get the student's course registrations
+        course_registrations = StudentCourseRegistration.objects.filter(
+            student=student)
+
+        # Create a response object
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="exam_slip.pdf"'
+
+        # Create a PDF document
+        doc = SimpleDocTemplate(response, pagesize=letter)
+
+        # Create data for the table
+        data = [['Course Code', 'Course Title', 'Course Description']]
+        for registration in course_registrations:
+            data.append([registration.course.code, registration.course.title,
+                         registration.course.description])
+
+        # Create a table from the data
+        table = Table(data)
+
+        # Apply styles to the table
+        style = TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+                            ('GRID', (0, 0), (-1, -1), 1, colors.black)])
+
+        table.setStyle(style)
+
+        # Create a paragraph for student details# Create paragraphs for student details
+        username_paragraph = Paragraph("Matric/Registration Number: {}".format(username), getSampleStyleSheet()['BodyText'])
+        name_paragraph = Paragraph("Name: {} {}".format(first_name, last_name), getSampleStyleSheet()['BodyText'])
+
+
+        # Add padding to the top of the table
+        padding_paragraph = Spacer(1, 20)  # Adjust the height as needed
+        # Create some paragraphs
+        paragraphs = []
+        # Add your paragraphs here
+        paragraphs.append(Paragraph(
+            "*This is an official course registered list by this particular student", getSampleStyleSheet()['BodyText']))
+        paragraphs.append(Paragraph(
+            "*Contact examiner if any corrections is required", getSampleStyleSheet()['BodyText']))
+
+        # Add the table and paragraphs to the PDF document
+        doc.build([username_paragraph, name_paragraph, padding_paragraph, table] + paragraphs,
+                  onFirstPage=lambda canvas, _: self.apply_watermark(canvas, './media/logo.png'))
+
+        return response
 

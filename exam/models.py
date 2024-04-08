@@ -60,6 +60,7 @@ class Exam(models.Model):
     instruction = models.CharField(max_length=250)
     course = models.OneToOneField('Course', on_delete=models.CASCADE, null = True, blank = True)
     total_mark = models.IntegerField()
+    is_activate = models.BooleanField(default = False)
 
     def __str__(self):
         return str(self.course) or ''
