@@ -456,8 +456,7 @@ class GenerateExamSlipPDF(APIView):
         canvas.saveState()
         canvas.drawImage(watermark, 0, 0, width*0.2, height*0.1)
         canvas.restoreState()
-        
-        
+
     def get(self, request):
         # Get the currently authenticated student
         student = request.user.student
@@ -498,9 +497,10 @@ class GenerateExamSlipPDF(APIView):
         table.setStyle(style)
 
         # Create a paragraph for student details# Create paragraphs for student details
-        username_paragraph = Paragraph("Matric/Registration Number: {}".format(username), getSampleStyleSheet()['BodyText'])
-        name_paragraph = Paragraph("Name: {} {}".format(first_name, last_name), getSampleStyleSheet()['BodyText'])
-
+        username_paragraph = Paragraph(
+            "Matric/Registration Number: {}".format(username), getSampleStyleSheet()['BodyText'])
+        name_paragraph = Paragraph("Name: {} {}".format(
+            first_name, last_name), getSampleStyleSheet()['BodyText'])
 
         # Add padding to the top of the table
         padding_paragraph = Spacer(1, 20)  # Adjust the height as needed
@@ -519,8 +519,6 @@ class GenerateExamSlipPDF(APIView):
         return response
 
 
-
-
 class GenerateExamsPDF(APIView):
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = (TokenAuthentication,)
@@ -530,13 +528,12 @@ class GenerateExamsPDF(APIView):
         canvas.saveState()
         canvas.drawImage(watermark, 0, 0, width*0.2, height*0.1)
         canvas.restoreState()
-        
-        
+
     def get(self, request):
         # Get the currently authenticated student
         examiner = request.user.id
         user = request.user
-        username = user.matric_number
+        username = user.examiner_id
         first_name = user.first_name
         last_name = user.last_name
 
@@ -552,10 +549,11 @@ class GenerateExamsPDF(APIView):
         doc = SimpleDocTemplate(response, pagesize=letter)
 
         # Create data for the table
-        data = [['Course', 'Duration', 'Instruction', 'Total Mark', "Number of Questions"]]
+        data = [['Course', "Number of Questions",
+                 'Duration', 'Instruction', 'Total Mark',]]
         for exam in exams:
-            data.append([exam.course, exam.duration,
-                         exam.instruction, exam.total_mark, exam.questions.count()])
+            data.append([exam.course, exam.questions.count(), exam.duration,
+                         exam.instruction, exam.total_mark, ])
 
         # Create a table from the data
         table = Table(data)
@@ -572,9 +570,10 @@ class GenerateExamsPDF(APIView):
         table.setStyle(style)
 
         # Create a paragraph for student details# Create paragraphs for student details
-        username_paragraph = Paragraph("Examiner ID: {}".format(username), getSampleStyleSheet()['BodyText'])
-        name_paragraph = Paragraph("Name: {} {}".format(first_name, last_name), getSampleStyleSheet()['BodyText'])
-
+        username_paragraph = Paragraph("Examiner ID: {}".format(
+            username), getSampleStyleSheet()['BodyText'])
+        name_paragraph = Paragraph("Name: {} {}".format(
+            first_name, last_name), getSampleStyleSheet()['BodyText'])
 
         # Add padding to the top of the table
         padding_paragraph = Spacer(1, 20)  # Adjust the height as needed
@@ -584,15 +583,13 @@ class GenerateExamsPDF(APIView):
         paragraphs.append(Paragraph(
             "*This is an official exam list by this particular examiner", getSampleStyleSheet()['BodyText']))
         paragraphs.append(Paragraph(
-            "*Contact examiner if any corrections is required", getSampleStyleSheet()['BodyText']))
+            "*Contact admin if any corrections is required", getSampleStyleSheet()['BodyText']))
 
         # Add the table and paragraphs to the PDF document
         doc.build([username_paragraph, name_paragraph, padding_paragraph, table] + paragraphs,
                   onFirstPage=lambda canvas, _: self.apply_watermark(canvas, './media/logo.png'))
 
         return response
-
-
 
 
 class ExamActivationView(generics.UpdateAPIView):
@@ -614,4 +611,3 @@ class ExamActivationView(generics.UpdateAPIView):
         instance.save()
 
         return Response(self.get_serializer(instance).data)
- 
