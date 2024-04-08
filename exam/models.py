@@ -20,6 +20,7 @@ class Course(models.Model):
 class CourseQuestion(models.Model):
     # exam = models.ForeignKey('Exam', on_delete=models.CASCADE, related_name='exam_questions', null = True, blank = True)
     course = models.ForeignKey(Course, on_delete = models.CASCADE, null = True, blank = True)
+    question_number = models.CharField(max_length= 250, blank = True, null = True)
     comprehension = models.TextField()
     question = models.CharField(max_length=250)
     examiner_answer = models.TextField()
