@@ -13,7 +13,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 import csv
-from reportlab.lib.pagesizes import letter
+from reportlab.lib.pagesizes import *
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image, Spacer
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
@@ -598,7 +598,7 @@ class GenerateExamAnswersResultsPDF(APIView):
     authentication_classes = (TokenAuthentication,)
 
     def apply_watermark(self, canvas, watermark):
-        width, height = letter
+        width, height = legal
         canvas.saveState()
         canvas.drawImage(watermark, 0, 0, width*0.2, height*0.1)
         canvas.restoreState()
@@ -616,16 +616,16 @@ class GenerateExamAnswersResultsPDF(APIView):
 
         # Create a response object
         response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="exam_list.pdf"'
+        response['Content-Disposition'] = 'attachment; filename="exam_answer_score.pdf"'
 
         # Create a PDF document
-        doc = SimpleDocTemplate(response, pagesize=letter)
+        doc = SimpleDocTemplate(response, pagesize=LEDGER)
 
         # Create data for the table
-        data = [['Student', "Question",
+        data = [['Student','Course Code', 'Course Title', 'Question Number', "Question",
                  'Answer', 'Score', 'Question Score',]]
         for exam_answers_result in exam_answers_results:
-            data.append([exam_answers_result.student, exam_answers_result.question.course, exam_answers_result.student_answer,
+            data.append([exam_answers_result.student, exam_answers_result.question.course.code, exam_answers_result.question.course.title, exam_answers_result.question.question_number,  exam_answers_result.student_answer,
                          exam_answers_result.student_score, exam_answers_result.question.question_score, ])
 
         # Create a table from the data
