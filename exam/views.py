@@ -205,9 +205,10 @@ class StudentExamListView(generics.ListAPIView):
         registered_courses = StudentCourseRegistration.objects.filter(
             student=self.request.user.student)
 
-        # Get exams for the registered courses
+        # Get activated exams for the registered courses
         exams = Exam.objects.filter(
-            course__in=registered_courses.values_list('course', flat=True))
+            course__in=registered_courses.values_list('course', flat=True),
+            is_activate=True)
         return exams
 
 
