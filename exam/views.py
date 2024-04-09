@@ -17,6 +17,7 @@ from reportlab.lib.pagesizes import *
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image, Spacer
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import inch
 from django.db.models import Q
 
 
@@ -598,7 +599,7 @@ class GenerateExamAnswersResultsPDF(APIView):
     authentication_classes = (TokenAuthentication,)
 
     def apply_watermark(self, canvas, watermark):
-        width, height = legal
+        width, height = LEGAL
         canvas.saveState()
         canvas.drawImage(watermark, 0, 0, width*0.2, height*0.1)
         canvas.restoreState()
@@ -611,59 +612,68 @@ class GenerateExamAnswersResultsPDF(APIView):
         first_name = user.first_name
         last_name = user.last_name
 
-        # Get the students answer result
-        exam_answers_results = ExamResult.objects.filter(question__course__examiner = examiner)
+        # Get the students' answer results
+        exam_answers_results = ExamResult.objects.filter(question__course__examiner=examiner)
 
         # Create a response object
         response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = 'attachment; filename="exam_answer_score.pdf"'
 
         # Create a PDF document
-        doc = SimpleDocTemplate(response, pagesize=LEDGER)
+        doc = SimpleDocTemplate(response, pagesize=LEGAL)
 
         # Create data for the table
         data = [['Student','Course Code', 'Course Title', 'Question Number', "Question",
-                 'Answer', 'Score', 'Question Score',]]
+                 'Answer', 'Score', 'Question Score']]
         for exam_answers_result in exam_answers_results:
-            data.append([exam_answers_result.student, exam_answers_result.question.course.code, exam_answers_result.question.course.title, exam_answers_result.question.question_number,  exam_answers_result.student_answer,
-                         exam_answers_result.student_score, exam_answers_result.question.question_score, ])
+            data.append([
+                exam_answers_result.student, 
+                exam_answers_result.question.course.code, 
+                exam_answers_result.question.course.title, 
+                exam_answers_result.question.question_number,  
+                exam_answers_result.student_answer,
+                exam_answers_result.student_score, 
+                exam_answers_result.question.question_score
+            ])
+
+        # Calculate column widths based on the number of characters in the header and data
+        column_widths = [2*inch, 1*inch, 2*inch, 1*inch, 3*inch, 3*inch, 0.5*inch, 0.5*inch]
 
         # Create a table from the data
-        table = Table(data)
+        table = Table(data, colWidths=column_widths)
 
         # Apply styles to the table
-        style = TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
-                            ('GRID', (0, 0), (-1, -1), 1, colors.black)])
+        style = TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('WORDWRAP', (0, 0), (-1, -1), 1),  # Enable text wrapping
+        ])
 
         table.setStyle(style)
 
-        # Create a paragraph for student details# Create paragraphs for student details
-        username_paragraph = Paragraph("Examiner ID: {}".format(
-            username), getSampleStyleSheet()['BodyText'])
-        name_paragraph = Paragraph("Name: {} {}".format(
-            first_name, last_name), getSampleStyleSheet()['BodyText'])
+        # Create a paragraph for student details
+        username_paragraph = Paragraph("Examiner ID: {}".format(username), getSampleStyleSheet()['BodyText'])
+        name_paragraph = Paragraph("Name: {} {}".format(first_name, last_name), getSampleStyleSheet()['BodyText'])
 
         # Add padding to the top of the table
         padding_paragraph = Spacer(1, 20)  # Adjust the height as needed
+
         # Create some paragraphs
-        paragraphs = []
-        # Add your paragraphs here
-        paragraphs.append(Paragraph(
-            "*This is an official exam answer list of the students who wrote exams setted by this particular examiner", getSampleStyleSheet()['BodyText']))
-        paragraphs.append(Paragraph(
-            "*Contact admin if any corrections is required", getSampleStyleSheet()['BodyText']))
+        paragraphs = [
+            Paragraph("*This is an official exam answer list of the students who wrote exams set by this particular examiner", getSampleStyleSheet()['BodyText']),
+            Paragraph("*Contact admin if any corrections are required", getSampleStyleSheet()['BodyText'])
+        ]
 
         # Add the table and paragraphs to the PDF document
         doc.build([username_paragraph, name_paragraph, padding_paragraph, table] + paragraphs,
                   onFirstPage=lambda canvas, _: self.apply_watermark(canvas, './media/logo.png'))
 
         return response
-
 
 
 class ExamActivationView(generics.UpdateAPIView):
