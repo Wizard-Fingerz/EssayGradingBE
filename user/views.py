@@ -248,6 +248,7 @@ class StudentDetailView(RetrieveUpdateDestroyAPIView):
 
 class GenerateStudentListPDF(APIView):
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication,]
 
     def apply_watermark(self, canvas, watermark):
         width, height = letter
