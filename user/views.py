@@ -15,7 +15,12 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from django.contrib.auth.hashers import make_password
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+from reportlab.lib.pagesizes import *
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image, Spacer
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import inch
 
 
 # Create your views here.
@@ -237,3 +242,78 @@ class StudentDetailView(RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = StudentsListSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+
+
+
+class GenerateStudentListPDF(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def apply_watermark(self, canvas, watermark):
+        width, height = letter
+        canvas.saveState()
+        canvas.drawImage(watermark, 0, 0, width*0.2, height*0.1)
+        canvas.restoreState()
+
+    def get(self, request):
+        # Get the currently authenticated student
+        examiner = request.user
+        user = request.user
+        username = user.matric_number
+        first_name = user.first_name
+        last_name = user.last_name
+
+        # Get the student's course registrations
+        students = User.objects.filter(
+            is_student=True)
+
+        # Create a response object
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="exam_slip.pdf"'
+
+        # Create a PDF document
+        doc = SimpleDocTemplate(response, pagesize=letter)
+
+        # Create data for the table
+        data = [['First Name', 'Last Name', 'Matric Number']]
+        for student in students:
+            data.append([student.first_name, student.last_name,
+                         student.matric_number])
+
+        # Create a table from the data
+        table = Table(data)
+
+        # Apply styles to the table
+        style = TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+                            ('GRID', (0, 0), (-1, -1), 1, colors.black)])
+
+        table.setStyle(style)
+
+        # Create a paragraph for student details# Create paragraphs for student details
+        username_paragraph = Paragraph(
+            "Examiner ID: {}".format(username), getSampleStyleSheet()['BodyText'])
+        name_paragraph = Paragraph("Name: {} {}".format(
+            first_name, last_name), getSampleStyleSheet()['BodyText'])
+
+        # Add padding to the top of the table
+        padding_paragraph = Spacer(1, 20)  # Adjust the height as needed
+        # Create some paragraphs
+        paragraphs = []
+        # Add your paragraphs here
+        paragraphs.append(Paragraph(
+            "*This is an official list of students added by this particular examiner", getSampleStyleSheet()['BodyText']))
+        paragraphs.append(Paragraph(
+            "*Contact admin if any corrections is required", getSampleStyleSheet()['BodyText']))
+
+        # Add the table and paragraphs to the PDF document
+        doc.build([username_paragraph, name_paragraph, padding_paragraph, table] + paragraphs,
+                  onFirstPage=lambda canvas, _: self.apply_watermark(canvas, './media/logo.png'))
+
+        return response
+
+
