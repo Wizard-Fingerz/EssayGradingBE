@@ -45,6 +45,8 @@ urlpatterns = [
     path('exam-results/', ExamResultScoreListAPIView.as_view(), name='exam-results'),
     path('examiner-exam-results/', ExaminerExamResultScoreListAPIView.as_view(),
          name='examiner-exam-results'),
+    path('examiner-exam-answers-score/', ExamStudentAnswersScoreListAPIView.as_view(),
+         name='examiner-exam-results'),
     path('delete-course/<int:pk>/',
          CourseDetailView.as_view(), name='delete-course'),
     path('delete-exam/<int:pk>/', ExamDetailView.as_view(), name='delete-exam'),

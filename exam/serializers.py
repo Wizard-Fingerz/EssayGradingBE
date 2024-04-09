@@ -30,13 +30,15 @@ class ExamSerializer(serializers.ModelSerializer):
 
 class GetExamSerializer(serializers.ModelSerializer):
     questions = CourseQuestionSerializer(many=True)
-    examiner = serializers.CharField(source='examiner.username', read_only=True)
+    examiner = serializers.CharField(
+        source='examiner.username', read_only=True)
     course_code = serializers.CharField(source='course.code', read_only=True)
     course_name = serializers.CharField(source='course.title', read_only=True)
 
     class Meta:
         model = Exam
-        fields = ['questions', 'examiner','course_code', 'duration', 'instruction', 'course_name', 'total_mark', 'course']
+        fields = ['questions', 'examiner', 'course_code', 'duration',
+                  'instruction', 'course_name', 'total_mark', 'course']
 
 
 class StudentCourseRegistrationSerializer(serializers.ModelSerializer):
@@ -44,7 +46,6 @@ class StudentCourseRegistrationSerializer(serializers.ModelSerializer):
         model = StudentCourseRegistration
         fields = ['student', 'course', 'registration_date']
         read_only_fields = ['registration_date']
-
 
 
 class StudentCourseRegistrationSerializer2(serializers.ModelSerializer):
@@ -71,16 +72,19 @@ class StudentCourseRegistrationSerializer2(serializers.ModelSerializer):
                 continue
 
             # Check if the student is already registered for this course
-            existing_registration = StudentCourseRegistration.objects.filter(student=student, course=course).first()
+            existing_registration = StudentCourseRegistration.objects.filter(
+                student=student, course=course).first()
             if existing_registration:
                 # If a registration already exists for this student-course combination, skip it
                 continue
 
             # Create the registration for the current course
-            registration = StudentCourseRegistration.objects.create(student=student, course=course)
+            registration = StudentCourseRegistration.objects.create(
+                student=student, course=course)
             registrations.append(registration)
 
         return registrations
+
 
 class StudentSerializer(serializers.ModelSerializer):
 
@@ -101,21 +105,24 @@ class CreateExamSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Exam
-        fields = ['duration', 'instruction', 'course', 'questions', 'total_mark']
+        fields = ['duration', 'instruction',
+                  'course', 'questions', 'total_mark']
 
     def create(self, validated_data):
         course = validated_data.pop('course')
         questions_data = validated_data.pop('questions')
 
         # Save the questions_data to use it later
-        course_questions = questions_data  
+        course_questions = questions_data
 
         exam = Exam.objects.create(course=course, **validated_data)
 
         # Now associate the questions with the exam
         for question_data in course_questions:
-            question = CourseQuestion.objects.create(course=course, **question_data)
-            exam.questions.add(question)  # Add the question to the many-to-many relationship
+            question = CourseQuestion.objects.create(
+                course=course, **question_data)
+            # Add the question to the many-to-many relationship
+            exam.questions.add(question)
 
         return exam
 
@@ -139,16 +146,37 @@ class ExamWithQuestionsSerializer(serializers.ModelSerializer):
 class ExamResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExamResult
-        fields = ['id', 'student', 'question', 'student_answer', 'student_score']
+        fields = ['id', 'student', 'question',
+                  'student_answer', 'student_score']
 
 
 class ExamResultScoreSerializer(serializers.ModelSerializer):
-    examiner = serializers.CharField(source='course.examiner.username', read_only=True)
+    examiner = serializers.CharField(
+        source='course.examiner.username', read_only=True)
     course_name = serializers.CharField(source='course.title', read_only=True)
     course_code = serializers.CharField(source='course.code', read_only=True)
     student = serializers.CharField(source='student.user', read_only=True)
 
-
     class Meta:
         model = ExamResultScore
-        fields = ['id', 'student', 'course_code', 'exam_score', 'examiner', 'grade', 'course_name', 'percentage_score']
+        fields = ['id', 'student', 'course_code', 'exam_score',
+                  'examiner', 'grade', 'course_name', 'percentage_score']
+
+
+class AnswerScoreSerializer(serializers.ModelSerializer):
+    student = serializers.CharField(
+        source='student.user.username', read_only=True)
+    question = serializers.CharField(
+        source='question.question', read_only=True)
+    course_name = serializers.CharField(
+        source='question.course.title', read_only=True)
+    course_code = serializers.CharField(
+        source='question.course.code', read_only=True)
+    # question_score = serializers.CharField(source='course_question.question_score', read_only=True)
+    question_score = serializers.CharField(
+        source='question.question_score', read_only=True)
+
+    class Meta:
+        model = ExamResult
+        fields = ['student', 'course_code', 'course_name',
+                  'question', 'student_answer', 'student_score', 'question_score']

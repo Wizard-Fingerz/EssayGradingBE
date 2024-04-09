@@ -390,6 +390,18 @@ class ExaminerExamResultScoreListAPIView(generics.ListAPIView):
         return ExamResultScore.objects.filter(course__in=courses)
 
 
+class ExamStudentAnswersScoreListAPIView(generics.ListAPIView):
+    serializer_class = AnswerScoreSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication,]
+
+    def get_queryset(self):
+        # Filter the queryset to retrieve only the exam result scores related to courses where the examiner is the currently logged-in user
+        courses = Course.objects.filter(examiner=self.request.user)
+        course_questions = CourseQuestion.objects.filter(course__in=courses)
+        return ExamResult.objects.filter(question__in=course_questions)
+
+
 class CourseBulkUploadAPIView(APIView):
     parser_classes = (MultiPartParser, FormParser)
     authentication_classes = [TokenAuthentication]
@@ -593,7 +605,6 @@ class GenerateExamsPDF(APIView):
         return response
 
 
-
 class GenerateExamAnswersResultsPDF(APIView):
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = (TokenAuthentication,)
@@ -636,8 +647,10 @@ class GenerateExamAnswersResultsPDF(APIView):
                 exam_answers_result.question.question_score
             ])
 
-        # Calculate column widths based on the number of characters in the header and data
-        column_widths = [2*inch, 1*inch, 2*inch, 1*inch, 3*inch, 3*inch, 0.5*inch, 0.5*inch]
+        # Calculate column widths based on the length of the longest text in each column
+        column_widths = []
+        for col in zip(*data):
+            column_widths.append(max([len(str(value)) for value in col]) * 0.25 * inch)
 
         # Create a table from the data
         table = Table(data, colWidths=column_widths)
@@ -674,6 +687,7 @@ class GenerateExamAnswersResultsPDF(APIView):
                   onFirstPage=lambda canvas, _: self.apply_watermark(canvas, './media/logo.png'))
 
         return response
+
 
 
 class ExamActivationView(generics.UpdateAPIView):
