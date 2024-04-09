@@ -270,7 +270,7 @@ class GenerateStudentListPDF(APIView):
 
         # Create a response object
         response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="exam_slip.pdf"'
+        response['Content-Disposition'] = 'attachment; filename="student_list.pdf"'
 
         # Create a PDF document
         doc = SimpleDocTemplate(response, pagesize=letter)
