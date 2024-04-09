@@ -624,7 +624,8 @@ class GenerateExamAnswersResultsPDF(APIView):
         last_name = user.last_name
 
         # Get the students' answer results
-        exam_answers_results = ExamResult.objects.filter(question__course__examiner=examiner)
+        exam_answers_results = ExamResult.objects.filter(
+            question__course__examiner=examiner)
 
         # Create a response object
         response = HttpResponse(content_type='application/pdf')
@@ -634,23 +635,24 @@ class GenerateExamAnswersResultsPDF(APIView):
         doc = SimpleDocTemplate(response, pagesize=LEGAL)
 
         # Create data for the table
-        data = [['Student','Course Code', 'Course Title', 'Question Number', "Question",
+        data = [['Student', 'Course Code', 'Course Title', 'Question Number', "Question",
                  'Answer', 'Score', 'Question Score']]
         for exam_answers_result in exam_answers_results:
             data.append([
-                exam_answers_result.student, 
-                exam_answers_result.question.course.code, 
-                exam_answers_result.question.course.title, 
-                exam_answers_result.question.question_number,  
+                exam_answers_result.student,
+                exam_answers_result.question.course.code,
+                exam_answers_result.question.course.title,
+                exam_answers_result.question.question_number,
                 exam_answers_result.student_answer,
-                exam_answers_result.student_score, 
+                exam_answers_result.student_score,
                 exam_answers_result.question.question_score
             ])
 
         # Calculate column widths based on the length of the longest text in each column
         column_widths = []
         for col in zip(*data):
-            column_widths.append(max([len(str(value)) for value in col]) * 0.25 * inch)
+            column_widths.append(max([len(str(value))
+                                 for value in col]) * 0.25 * inch)
 
         # Create a table from the data
         table = Table(data, colWidths=column_widths)
@@ -670,16 +672,20 @@ class GenerateExamAnswersResultsPDF(APIView):
         table.setStyle(style)
 
         # Create a paragraph for student details
-        username_paragraph = Paragraph("Examiner ID: {}".format(username), getSampleStyleSheet()['BodyText'])
-        name_paragraph = Paragraph("Name: {} {}".format(first_name, last_name), getSampleStyleSheet()['BodyText'])
+        username_paragraph = Paragraph("Examiner ID: {}".format(
+            username), getSampleStyleSheet()['BodyText'])
+        name_paragraph = Paragraph("Name: {} {}".format(
+            first_name, last_name), getSampleStyleSheet()['BodyText'])
 
         # Add padding to the top of the table
         padding_paragraph = Spacer(1, 20)  # Adjust the height as needed
 
         # Create some paragraphs
         paragraphs = [
-            Paragraph("*This is an official exam answer list of the students who wrote exams set by this particular examiner", getSampleStyleSheet()['BodyText']),
-            Paragraph("*Contact admin if any corrections are required", getSampleStyleSheet()['BodyText'])
+            Paragraph("*This is an official exam answer list of the students who wrote exams set by this particular examiner",
+                      getSampleStyleSheet()['BodyText']),
+            Paragraph("*Contact admin if any corrections are required",
+                      getSampleStyleSheet()['BodyText'])
         ]
 
         # Add the table and paragraphs to the PDF document
@@ -687,7 +693,6 @@ class GenerateExamAnswersResultsPDF(APIView):
                   onFirstPage=lambda canvas, _: self.apply_watermark(canvas, './media/logo.png'))
 
         return response
-
 
 
 class GenerateCoursesPDF(APIView):
@@ -734,7 +739,10 @@ class GenerateCoursesPDF(APIView):
                             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
                             ('BACKGROUND', (0, 1), (-1, -1), colors.white),
-                            ('GRID', (0, 0), (-1, -1), 1, colors.black)])
+                            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                            # Enable text wrapping
+                            ('WORDWRAP', (0, 0), (-1, -1), 1),
+                            ])
 
         table.setStyle(style)
 
@@ -759,8 +767,6 @@ class GenerateCoursesPDF(APIView):
                   onFirstPage=lambda canvas, _: self.apply_watermark(canvas, './media/logo.png'))
 
         return response
-
-
 
 
 class ExamActivationView(generics.UpdateAPIView):
