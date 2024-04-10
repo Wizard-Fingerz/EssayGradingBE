@@ -85,8 +85,8 @@
                 <mxCell id="80" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="78" target="15" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="78" value="Model Evaluation using metrics like&amp;nbsp;&lt;br&gt;&lt;ul&gt;&lt;li&gt;RMESE&lt;/li&gt;&lt;li&gt;MAE&lt;/li&gt;&lt;li&gt;MAE&lt;/li&gt;&lt;li&gt;R2 SCORE&lt;/li&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="30" y="521.3274336283185" width="280" height="123.09734513274337" as="geometry"/>
+                <mxCell id="78" value="&lt;font style=&quot;font-size: 8px;&quot;&gt;Model Evaluation using metrics like&amp;nbsp;&lt;br&gt;&lt;/font&gt;&lt;ul style=&quot;font-size: 8px;&quot;&gt;&lt;li style=&quot;&quot;&gt;&lt;font style=&quot;font-size: 8px;&quot;&gt;RMESE&lt;/font&gt;&lt;/li&gt;&lt;li style=&quot;&quot;&gt;&lt;font style=&quot;font-size: 8px;&quot;&gt;MAE&lt;/font&gt;&lt;/li&gt;&lt;li style=&quot;&quot;&gt;&lt;font style=&quot;font-size: 8px;&quot;&gt;MAE&lt;/font&gt;&lt;/li&gt;&lt;li style=&quot;&quot;&gt;&lt;font style=&quot;font-size: 8px;&quot;&gt;R2 SCORE&lt;/font&gt;&lt;/li&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="140" y="521.33" width="170" height="98.67" as="geometry"/>
                 </mxCell>
                 <mxCell id="79" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="75" target="78" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
