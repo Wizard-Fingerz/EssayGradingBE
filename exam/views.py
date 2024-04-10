@@ -769,6 +769,84 @@ class GenerateCoursesPDF(APIView):
         return response
 
 
+
+class GenerateStudentResultPDF(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = (TokenAuthentication,)
+
+    def apply_watermark(self, canvas, watermark):
+        width, height = letter
+        canvas.saveState()
+        canvas.drawImage(watermark, 0, 0, width*0.2, height*0.1)
+        canvas.restoreState()
+
+    def get(self, request):
+        # Get the currently authenticated student
+        student = request.user.student
+        user = request.user
+        username = user.matric_number
+        first_name = user.first_name
+        last_name = user.last_name
+
+        # Get the student's course registrations
+        exam_result_scores = ExamResultScore.objects.filter(
+            student=student)
+
+        # Create a response object
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="result.pdf"'
+
+        # Create a PDF document
+        doc = SimpleDocTemplate(response, pagesize=letter)
+
+        # Create data for the table
+        data = [['Course', 'Course Ttile', 'Exam Score', 'Percentage Score', 'Grade']]
+        for exam_result_score in exam_result_scores:
+            data.append([exam_result_score.course.code,exam_result_score.course.title, exam_result_score.exam_score,
+                         exam_result_score.percentage_score, exam_result_score.grade])
+
+        # Create a table from the data
+        table = Table(data)
+
+        # Apply styles to the table
+        style = TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+                            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                            # Enable text wrapping
+                            ('WORDWRAP', (0, 0), (-1, -1), 1),
+                            ])
+
+        table.setStyle(style)
+
+        # Create a paragraph for student details# Create paragraphs for student details
+        username_paragraph = Paragraph(
+            "Matric No/Regstration No: {}".format(username), getSampleStyleSheet()['BodyText'])
+        name_paragraph = Paragraph("Name: {} {}".format(
+            first_name, last_name), getSampleStyleSheet()['BodyText'])
+
+        # Add padding to the top of the table
+        padding_paragraph = Spacer(1, 20)  # Adjust the height as needed
+        # Create some paragraphs
+        paragraphs = []
+        # Add your paragraphs here
+        paragraphs.append(Paragraph(
+            "*This is an official result of this particular student", getSampleStyleSheet()['BodyText']))
+        paragraphs.append(Paragraph(
+            "*Contact examiner or admin if any corrections is required", getSampleStyleSheet()['BodyText']))
+
+        # Add the table and paragraphs to the PDF document
+        doc.build([username_paragraph, name_paragraph, padding_paragraph, table] + paragraphs,
+                  onFirstPage=lambda canvas, _: self.apply_watermark(canvas, './media/logo.png'))
+
+        return response
+
+
+
+
 class ExamActivationView(generics.UpdateAPIView):
     serializer_class = ExamSerializer
     permission_classes = [permissions.IsAuthenticated]

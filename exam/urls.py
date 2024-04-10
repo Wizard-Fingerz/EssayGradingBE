@@ -60,6 +60,8 @@ urlpatterns = [
          name='generate-exam-answers-pdf'),
     path('generate-courses-pdf/', GenerateCoursesPDF.as_view(),
          name='generate-courses-pdf'),
+    path('generate-student-result-pdf/', GenerateStudentResultPDF.as_view(),
+         name='generate-student-result-pdf'),
     path('start-end-exam/<int:pk>/', ExamActivationView.as_view(), name = 'exam-activation'),
 
 ]
