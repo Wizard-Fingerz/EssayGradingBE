@@ -1,20 +1,23 @@
 <mxfile host="65bd71144e">
     <diagram id="v0POaVEqfWPxZcAgOBb1" name="Page-1">
-        <mxGraphModel dx="562" dy="263" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="1370" dy="640" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
                 <mxCell id="2" value="&lt;font style=&quot;font-size: 8px;&quot;&gt;Start&lt;/font&gt;" style="ellipse;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="10" y="45.44" width="70" height="48.14" as="geometry"/>
                 </mxCell>
-                <mxCell id="9" value="Combine and define target dataframes&lt;br&gt;i.e. x = semantic analysis and&lt;br&gt;question score while y = student score" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="350" y="402.9646017699115" width="240" height="75.75221238938053" as="geometry"/>
-                </mxCell>
-                <mxCell id="12" value="Split Data Ratio&amp;nbsp;" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="657.5" y="360.353982300885" width="160" height="160.97345132743362" as="geometry"/>
-                </mxCell>
-                <mxCell id="69" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="9" target="12" edge="1">
+                <mxCell id="117" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=8;" edge="1" parent="1" source="9" target="116">
                     <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="&lt;font style=&quot;font-size: 8px;&quot;&gt;Combine and define target dataframes&lt;br&gt;i.e. x1= semantic analysis, x2 = question score and y = student score&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="20" y="152.88" width="177.5" height="45.53" as="geometry"/>
+                </mxCell>
+                <mxCell id="122" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=8;" edge="1" parent="1" source="12" target="72">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="&lt;font style=&quot;font-size: 8px;&quot;&gt;Split Testing and &lt;br&gt;tainig ratio&lt;/font&gt;" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="195" y="232.69999999999993" width="90" height="60.49" as="geometry"/>
                 </mxCell>
                 <mxCell id="15" value="Selection of best machine&lt;br&gt;learning model and&lt;br&gt;dumping with joblib" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="72.5" y="691.7699115044248" width="195" height="160.97345132743362" as="geometry"/>
@@ -52,70 +55,32 @@
                 <mxCell id="55" value="&lt;font style=&quot;font-size: 8px;&quot;&gt;Semantic Similarity Analysis using spacy&lt;br&gt;&lt;/font&gt;&lt;ul style=&quot;font-size: 8px;&quot;&gt;&lt;li style=&quot;&quot;&gt;&lt;font style=&quot;font-size: 8px;&quot;&gt;POS tagging&lt;/font&gt;&lt;/li&gt;&lt;li style=&quot;&quot;&gt;&lt;font style=&quot;font-size: 8px;&quot;&gt;NER&lt;/font&gt;&lt;/li&gt;&lt;li style=&quot;&quot;&gt;&lt;font style=&quot;font-size: 8px;&quot;&gt;Depency parsing&lt;/font&gt;&lt;/li&gt;&lt;li style=&quot;&quot;&gt;&lt;font style=&quot;font-size: 8px;&quot;&gt;Word vectorization&lt;/font&gt;&lt;/li&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="678.75" y="129.03" width="170" height="90" as="geometry"/>
                 </mxCell>
+                <mxCell id="114" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;fontSize=8;" edge="1" parent="1" source="56" target="112">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="118" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=8;" edge="1" parent="1" source="56" target="63">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
                 <mxCell id="56" value="&lt;font style=&quot;font-size: 8px;&quot;&gt;Semantic Weight &lt;br&gt;Comparism reliable?&lt;/font&gt;" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="537.5" y="127.57000000000001" width="120" height="92.91" as="geometry"/>
                 </mxCell>
                 <mxCell id="62" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="55" target="56" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="65" style="edgeStyle=none;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" parent="1" source="63" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="330" y="199.38053097345133" as="targetPoint"/>
-                    </mxGeometry>
+                <mxCell id="63" value="&lt;font style=&quot;font-size: 8px;&quot;&gt;Change Sematic weight&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="547.5" y="250.00000000000003" width="100" height="25.4" as="geometry"/>
                 </mxCell>
-                <mxCell id="63" value="Change Sematic weight ratio" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="270" y="303.53982300884957" width="120" height="56.8141592920354" as="geometry"/>
-                </mxCell>
-                <mxCell id="64" value="No" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="56" target="63" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <Array as="points">
-                            <mxPoint x="180" y="331.94690265486724"/>
-                        </Array>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="68" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="66" target="9" edge="1">
+                <mxCell id="110" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;fontSize=8;" edge="1" parent="1" source="66" target="9">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="66" value="Convert Semantic Similarity&lt;br&gt;Analysis Result into Dataframe" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="105" y="407.6991150442478" width="190" height="66.28318584070797" as="geometry"/>
+                <mxCell id="66" value="&lt;font style=&quot;font-size: 8px;&quot;&gt;Convert Semantic Similarity&lt;br&gt;Analysis Result into Dataframe&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="230" y="156.09" width="130" height="39.12" as="geometry"/>
                 </mxCell>
-                <mxCell id="67" value="Yes" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="56" target="66" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <Array as="points">
-                            <mxPoint x="40" y="194.64601769911505"/>
-                            <mxPoint x="40" y="440.8407079646018"/>
-                        </Array>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="74" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="72" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="619.7142857142858" y="436.10619469026545" as="targetPoint"/>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="72" value="Change Split ratio" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="560" y="284.60176991150445" width="120" height="56.8141592920354" as="geometry"/>
-                </mxCell>
-                <mxCell id="73" value="No" style="edgeStyle=none;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="12" target="72" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <Array as="points">
-                            <mxPoint x="738" y="313.0088495575221"/>
-                        </Array>
-                    </mxGeometry>
+                <mxCell id="72" value="&lt;font style=&quot;font-size: 8px;&quot;&gt;Change Split ratio&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="198.75" y="310" width="82.5" height="20" as="geometry"/>
                 </mxCell>
                 <mxCell id="75" value="Comparative ananlysis of machine learning model like&lt;br&gt;&lt;ul&gt;&lt;li&gt;Random Forest Regressor&lt;/li&gt;&lt;li&gt;Decision Tree&lt;/li&gt;&lt;li&gt;Gradient Booting Regresssor&lt;/li&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="380" y="521.3274336283185" width="280" height="123.09734513274337" as="geometry"/>
-                </mxCell>
-                <mxCell id="76" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="12" target="75" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <Array as="points">
-                            <mxPoint x="740" y="582.8761061946902"/>
-                        </Array>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="77" value="Yes" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="76" vertex="1" connectable="0">
-                    <mxGeometry x="0.0827" y="-4" relative="1" as="geometry">
-                        <mxPoint x="-1" as="offset"/>
-                    </mxGeometry>
                 </mxCell>
                 <mxCell id="80" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="78" target="15" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
@@ -192,6 +157,18 @@
                 </mxCell>
                 <mxCell id="103" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="90" target="93" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="115" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;fontSize=8;" edge="1" parent="1" source="112" target="66">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="112" value="Optimal Semantic&lt;br&gt;analysis result" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fontSize=8;" vertex="1" parent="1">
+                    <mxGeometry x="400" y="156.04" width="115" height="35.97" as="geometry"/>
+                </mxCell>
+                <mxCell id="121" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=8;" edge="1" parent="1" source="116" target="12">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="116" value="New dataset for modelling&lt;br&gt;after combination &lt;br&gt;of dataframes" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fontSize=8;" vertex="1" parent="1">
+                    <mxGeometry x="48.75" y="232.7" width="120" height="60" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
