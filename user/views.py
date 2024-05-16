@@ -260,7 +260,7 @@ class GenerateStudentListPDF(APIView):
         # Get the currently authenticated student
         examiner = request.user
         user = request.user
-        username = user.matric_number
+        username = user.examiner_id
         first_name = user.first_name
         last_name = user.last_name
 
