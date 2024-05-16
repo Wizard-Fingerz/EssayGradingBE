@@ -13,6 +13,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 import csv
+import textdistance
 from reportlab.lib.pagesizes import *
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image, Spacer
 from reportlab.lib import colors
@@ -362,11 +363,27 @@ class AnswerSubmissionView(views.APIView):
                     exam_result.student_score = student_score
                     exam_result.save()
 
+                # Plagiarism detection logic
+                self.detect_plagiarism(question_id, answer, exam_result)
+
             return Response("Exam results saved successfully", status=status.HTTP_201_CREATED)
         except Exception as e:
             # Log the exception for debugging
             print(f"An error occurred while saving exam result: {e}")
             return Response(f"An error occurred while saving exam result: {e}", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def detect_plagiarism(self, question_id, new_answer, new_exam_result):
+        # Get all existing answers for the question
+        existing_results = ExamResult.objects.filter(question_id=question_id).exclude(id=new_exam_result.id)
+
+        for result in existing_results:
+            similarity = textdistance.jaccard(new_answer, result.student_answer)
+            if similarity >= 0.8:  # Set your threshold here
+                # Update similarity scores
+                new_exam_result.similarity_score = similarity
+                result.similarity_score = similarity
+                new_exam_result.save()
+                result.save()
 
 
 class ExamResultScoreListAPIView(generics.ListAPIView):

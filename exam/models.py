@@ -71,6 +71,8 @@ class ExamResult(models.Model):
     question = models.ForeignKey(CourseQuestion, on_delete=models.CASCADE)
     student_answer = models.TextField(null=True, blank=True)
     student_score = models.IntegerField(null=True, blank=True)
+    similarity_score = models.FloatField(null=True, blank=True)  # New field to store similarity score
+
     
     def __str__(self):
         return f"{self.student.user}'s answer to {self.question}"
