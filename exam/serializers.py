@@ -37,7 +37,7 @@ class GetExamSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Exam
-        fields = ['questions', 'examiner', 'course_code', 'duration',
+        fields = ['id','questions', 'examiner', 'course_code', 'duration',
                   'instruction', 'course_name', 'total_mark', 'course']
 
 
