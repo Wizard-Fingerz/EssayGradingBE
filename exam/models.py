@@ -94,6 +94,7 @@ class ExamResultScore(models.Model):
     exam_score = models.IntegerField(null=True, blank=True)
     percentage_score = models.FloatField(null=True, blank=True)
     grade = models.CharField(max_length=2, blank=True)
+    is_disabled = models.BooleanField(default = True)
 
     def __str__(self):
         return f"{self.student}'s exam score for {self.course}"

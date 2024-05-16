@@ -376,7 +376,7 @@ class ExamResultScoreListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         # Filter the queryset to retrieve only the exam result scores of the currently logged-in student
-        return ExamResultScore.objects.filter(student=self.request.user.student)
+        return ExamResultScore.objects.filter(student=self.request.user.student, is_disabled=False)
 
 
 class ExaminerExamResultScoreListAPIView(generics.ListAPIView):
@@ -863,6 +863,27 @@ class ExamActivationView(generics.UpdateAPIView):
             return Response({"is_activate": ["This field is required."]}, status=status.HTTP_400_BAD_REQUEST)
 
         instance.is_activate = is_activate
+        instance.save()
+
+        return Response(self.get_serializer(instance).data)
+
+
+class DisplayResultActivationView(generics.UpdateAPIView):
+    serializer_class = ExamResultScoreSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get_queryset(self):
+        return ExamResultScore.objects.filter(course__examiner=self.request.user)
+
+    def patch(self, request, *args, **kwargs):
+        instance = self.get_object()
+        is_disabled = request.data.get('is_disabled', None)
+
+        if is_disabled is None:
+            return Response({"is_disabled": ["This field is required."]}, status=status.HTTP_400_BAD_REQUEST)
+
+        instance.is_disabled = is_disabled
         instance.save()
 
         return Response(self.get_serializer(instance).data)
