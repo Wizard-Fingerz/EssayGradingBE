@@ -62,7 +62,11 @@ urlpatterns = [
          name='generate-courses-pdf'),
     path('generate-student-result-pdf/', GenerateStudentResultPDF.as_view(),
          name='generate-student-result-pdf'),
-    path('start-end-exam/<int:pk>/', ExamActivationView.as_view(), name = 'exam-activation'),
-    path('enable-disable-result/<int:pk>/', DisplayResultActivationView.as_view(), name = 'display-result'),
+    path('generate-students-result-pdf/', GenerateStudentResultsPDF.as_view(),
+         name='generate-students-result-pdf'),
+    path('start-end-exam/<int:pk>/',
+         ExamActivationView.as_view(), name='exam-activation'),
+    path('enable-disable-result/<int:pk>/',
+         DisplayResultActivationView.as_view(), name='display-result'),
 
 ]
