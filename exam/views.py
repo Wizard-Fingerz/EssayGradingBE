@@ -372,18 +372,34 @@ class AnswerSubmissionView(views.APIView):
             print(f"An error occurred while saving exam result: {e}")
             return Response(f"An error occurred while saving exam result: {e}", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    # def detect_plagiarism(self, question_id, new_answer, new_exam_result):
+    #     # Get all existing answers for the question
+    #     existing_results = ExamResult.objects.filter(question_id=question_id).exclude(id=new_exam_result.id)
+
+    #     for result in existing_results:
+    #         similarity = textdistance.jaccard(new_answer, result.student_answer)
+    #         if similarity >= 0.8:  # Set your threshold here
+    #             # Update similarity scores
+    #             new_exam_result.similarity_score = similarity
+    #             result.similarity_score = similarity
+    #             new_exam_result.save()
+    #             result.save()
+    
     def detect_plagiarism(self, question_id, new_answer, new_exam_result):
-        # Get all existing answers for the question
+    # Get all existing answers for the question
         existing_results = ExamResult.objects.filter(question_id=question_id).exclude(id=new_exam_result.id)
 
         for result in existing_results:
             similarity = textdistance.jaccard(new_answer, result.student_answer)
+            similarity_percentage = f"{similarity * 100:.0f}%"  # Convert to percentage string format
+            
             if similarity >= 0.8:  # Set your threshold here
                 # Update similarity scores
-                new_exam_result.similarity_score = similarity
-                result.similarity_score = similarity
+                new_exam_result.similarity_score = similarity_percentage
+                result.similarity_score = similarity_percentage
                 new_exam_result.save()
                 result.save()
+
 
 
 class ExamResultScoreListAPIView(generics.ListAPIView):
