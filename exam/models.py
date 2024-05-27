@@ -117,3 +117,16 @@ class ExamResultScore(models.Model):
             self.grade = 'E'
         else:
             self.grade = 'F'
+
+
+# OCR ENHANCEMENT
+
+class AnswerSheet(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
+    pdf = models.FileField(upload_to='answer_sheets/')
+    processed = models.BooleanField(default=False)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.student.user.username}'s answer sheet for {self.exam.course.title}"

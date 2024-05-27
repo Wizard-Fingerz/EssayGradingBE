@@ -1,3 +1,6 @@
+import os
+import numpy as np
+from .ocr_utils import pdf_to_images, detect_text_regions, extract_text
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from .prediction import *
@@ -994,3 +997,102 @@ class DisplayResultActivationView(generics.UpdateAPIView):
         instance.save()
 
         return Response(self.get_serializer(instance).data)
+
+# OCR funtions for grading
+
+import os
+import numpy as np
+from .ocr_utils import pdf_to_images, detect_text_regions, extract_text
+
+class OCRAnswerSubmissionView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+
+        if not user.is_authenticated:
+            return Response("User is not authenticated.", status=status.HTTP_401_UNAUTHORIZED)
+
+        answer_sheet_file = request.FILES.get('answer_sheet')
+        if not answer_sheet_file:
+            return Response("No answer sheet uploaded.", status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            answer_sheet = AnswerSheet.objects.create(
+                student=user.student,
+                exam=Exam.objects.get(id=request.data['exam_id']),
+                pdf=answer_sheet_file
+            )
+
+            images = pdf_to_images(answer_sheet.pdf.path)
+            results = []
+
+            for image in images:
+                image = np.array(image)
+                boxes = detect_text_regions(image)
+                texts_with_context = extract_text_with_context(image, boxes)
+
+                for (box, text_with_context) in texts_with_context:
+                    question_number = self.extract_question_number(text_with_context)
+                    question = CourseQuestion.objects.filter(course=answer_sheet.exam.course, question_number=question_number).first()
+                    if question:
+                        student_answer = self.extract_student_answer(text_with_context)  # Implement this function
+                        results.append((question, student_answer))
+
+            self.grade_answers(answer_sheet, results)
+            return Response("Answer sheet processed and results saved successfully", status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            print(f"An error occurred while processing the answer sheet: {e}")
+            return Response(f"An error occurred while processing the answer sheet: {e}", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def extract_question_number(self, text):
+        lines = text.split('\n')
+        for line in lines:
+            if line.startswith('Q'):
+                return line.split(' ')[0][1:]
+        return None
+
+    def grade_answers(self, answer_sheet, results):
+        for question, student_answer in results:
+            prediction_service = PredictionService()
+            student_score = prediction_service.predict(
+                question_id=question.id,
+                comprehension=question.comprehension,
+                question=question.question,
+                question_score=question.question_score,
+                examiner_answer=question.examiner_answer,
+                student_answer=student_answer
+            )
+
+            exam_result, created = ExamResult.objects.get_or_create(
+                student=answer_sheet.student,
+                question=question,
+                defaults={
+                    'student_answer': student_answer,
+                    'student_score': student_score
+                }
+            )
+
+            if not created:
+                exam_result.student_answer = student_answer
+                exam_result.student_score = student_score
+                exam_result.save()
+
+            self.detect_plagiarism(question.id, student_answer, exam_result)
+
+        answer_sheet.processed = True
+        answer_sheet.save()
+
+    def detect_plagiarism(self, question_id, new_answer, new_exam_result):
+        existing_results = ExamResult.objects.filter(question_id=question_id).exclude(id=new_exam_result.id)
+
+        for result in existing_results:
+            similarity = textdistance.jaccard(new_answer, result.student_answer)
+            similarity_percentage = f"{similarity * 100:.0f}%"
+            if similarity >= 0.8:
+                new_exam_result.similarity_score = similarity_percentage
+                result.similarity_score = similarity_percentage
+                new_exam_result.save()
+                result.save()
